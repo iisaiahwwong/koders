@@ -19,6 +19,7 @@ var validator = require('express-validator');
 // Routes
 var index = require('./routes/index');
 var users = require('./routes/users');
+var cognitiveRoute = require('./routes/cognitive');
 
 var app = express();
 
@@ -39,9 +40,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(flash());
 
-
-app.use('/', index);
+// ROUTES
+app.use('/cognitive', cognitiveRoute);
 app.use('/users', users);
+app.use('/', index);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
