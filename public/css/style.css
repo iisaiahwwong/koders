@@ -38,6 +38,7 @@ a, a:hover, a:focus {
 }
 
 .navbar {
+    z-index: 102;
     padding: 0px;
     background-color: transparent;
     border: none;
@@ -72,6 +73,7 @@ a, a:hover, a:focus {
 }
 
 #sidebar {
+    z-index: 100;
     min-width: 250px;
     max-width: 250px;
     background: #E6EAEB;
@@ -180,6 +182,7 @@ a.article, a.article:hover {
     CONTENT STYLE
 ----------------------------------------------------- */
 #content {
+    z-index: 101;
     padding: 20px;
     min-height: 100vh;
     transition: all 0.3s;
@@ -221,7 +224,6 @@ a.article, a.article:hover {
     margin: 5px auto;
 }
 
-
 /* ---------------------------------------------------
     MEDIAQUERIES
 ----------------------------------------------------- */
@@ -255,4 +257,3 @@ a.article, a.article:hover {
     }
 
 }
-`

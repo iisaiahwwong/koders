@@ -6,4 +6,8 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'Koders' });
 });
 
+router.get('/worldmap', function(req, res, next) {
+  res.render('worldMap', { title: 'World Map'});
+});
+
 module.exports = router;

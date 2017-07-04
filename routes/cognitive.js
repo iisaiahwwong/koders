@@ -10,12 +10,12 @@ var fs = require('fs');
 router.post('/upload', function (req, res, next) {
     request({
         method: 'POST',
-        url: 'https://api.kairos.com/v2/media?source=http%3A%2F%2Fmedia.kairos.com%2Ftest.flv',
+        url: 'https://api.kairos.com/v2/media?source=http://media.kairos.com/test.flv',
         headers: {
             'app_id': Kairo.id,
             'app_key': Kairo.key
         }
-    }, function (error, res, body) {
+    }, function (error, response, body) {
         res.json(body);
     });
 });
@@ -23,18 +23,28 @@ router.post('/upload', function (req, res, next) {
 router.get('/', function (req, res, next) {
     request({
         method: 'GET',
-        url: 'https://api.kairos.com/v2/media/b05179878899f20c554d1703',
+        url: 'https://api.kairos.com/v2/media/e68ddb04f22237b2f886b1e9',
         headers: {
-            'app_id': '709f4603',
-            'app_key': '14ff4ff63246154a57a6100966f6b7e2'
+            'app_id': Kairo.id,
+            'app_key': Kairo.key
         }
     }, function (error, response, body) {
                 res.json(body);
     });
 })
 
-function postData() {
-
-}
+router.get('/analysis', function (req, res, next) {
+    request({
+        method: 'GET',
+        url: 'https://api.kairos.com/v2/analytics/e68ddb04f22237b2f886b1e9',
+        headers: {
+            'app_id': Kairo.id,
+            'app_key': Kairo.key
+        }
+    }, function (error, response, body) {
+                console.log(body);
+                res.json(body);
+    });
+})
 
 module.exports = router;
