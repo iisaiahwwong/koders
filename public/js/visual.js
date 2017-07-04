@@ -2,27 +2,27 @@
     DRAW METHODS
 ----------------------------------------------------- */
 
-var VISUAL = (function () { 
-	"use strict";
-	
-	function Visual() {
-		this.setValues = (values) => {
-			if (values === undefined) return;
+var VISUAL = (function () {
+    "use strict";
 
-			for (let key in values) {
-				this[key] = values[key];
-			}
-		}	
-	}
+    function Visual() {
+        this.setValues = (values) => {
+            if (values === undefined) return;
+
+            for (let key in values) {
+                this[key] = values[key];
+            }
+        }
+    }
 
 
-	CubicBezier.prototype = new Visual();
+    CubicBezier.prototype = new Visual();
 
-	function CubicBezier() {
-		this.startObject;
-		this.endObject;
-		this.color;
-	}
+    function CubicBezier() {
+        this.startObject;
+        this.endObject;
+        this.color;
+    }
 
 	/**
 	 * @author iisaiah
@@ -33,63 +33,65 @@ var VISUAL = (function () {
 	 * @param {THREE.Object3D || THREE.Vector3} endObject
 	 * @param {HEX} color 
 	 */
-	CubicBezier.prototype.drawCubicBezier = function (cubicOptions) {
+    CubicBezier.prototype.drawCubicBezier = function (cubicOptions) {
 
-		if (!cubicOptions) throw new Error('Now options specified');
+        if (!cubicOptions) throw new Error('Now options specified');
 
-		this.setValues(cubicOptions);
+        this.setValues(cubicOptions);
 
-		let startObject = (this.startObject instanceof THREE.Object3D) ? this.startObject.position : this.startObject;
-		let endObject = (this.startObject instanceof THREE.Object3D) ? this.endObject.position : this.endObject;
+        let startObject = (this.startObject instanceof THREE.Object3D) ? this.startObject.position : this.startObject;
+        let endObject = (this.startObject instanceof THREE.Object3D) ? this.endObject.position : this.endObject;
 
-		let x = startObject.x;
-		let y = startObject.y;
-		let z = startObject.z;
+        let x = startObject.x;
+        let y = startObject.y;
+        let z = startObject.z;
 
-		let eX = endObject.x;
-		let eY = endObject.y;
-		let eZ = endObject.z;
+        let eX = endObject.x;
+        let eY = endObject.y;
+        let eZ = endObject.z;
 
-		let points = new THREE.CubicBezierCurve3(
-			new THREE.Vector3(x, y, z),
-			new THREE.Vector3(x + 70, y, z),
-			new THREE.Vector3(x + 30, y + 80, z),
-			new THREE.Vector3(eX, eY, eZ)
-		).getPoints(500);
+        let points = new THREE.CubicBezierCurve3(
+            new THREE.Vector3(x, y, z),
+            new THREE.Vector3(x + 70, y, z),
+            new THREE.Vector3(x + 30, y + 80, z),
+            new THREE.Vector3(eX, eY, eZ)
+        ).getPoints(500);
 
-		// geometry
-		let geometry = new THREE.BufferGeometry();
+        // geometry
+        let geometry = new THREE.BufferGeometry();
 
-		// material
-		let material = new THREE.LineBasicMaterial({ color: cubicOptions.color, linewidth: 2 });
+        // material
+        let material = new THREE.LineBasicMaterial({ color: cubicOptions.color, linewidth: 2 });
 
-		// line
-		let line = new THREE.Line(geometry, material);
+        // line
+        let line = new THREE.Line(geometry, material);
 
-		let pointsLen = points.length;
+        let pointsLen = points.length;
 
-		line.points = points;
+        line.points = points;
 
-		// attributes
-		let positions = new Float32Array(pointsLen * 3); // 3 vertices per point
+        // attributes
+        let positions = new Float32Array(pointsLen * 3); // 3 vertices per point
 
-		geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
 
-		addPositions(line, points);
+        addPositions(line, points);
 
-		return line;
+        return line;
 
-	}
+    }
 
-	BorderCircle.prototype = new Visual();
+    Circle.prototype = new Visual();
 
-	function BorderCircle() {
-		this.startPosition;
-		this.startAngle;
-		this.resolution;
-		this.color;
-		this.radius;
-	}
+    function Circle() {
+        this.startPosition;
+        this.startAngle;
+        this.resolution;
+        this.color;
+        this.radius;
+        this.segments;
+        this.opacity;
+    }
 
 	/**
 	 * @author iisaiah
@@ -102,99 +104,110 @@ var VISUAL = (function () {
 	 * {Number} radius
 	 * {HEX} color 
 	 */
-	BorderCircle.prototype.drawBorderCircle = function (circleOptions) {
+    Circle.prototype.drawBorderCircle = function (circleOptions) {
 
-		if (!circleOptions) throw new Error('No options defiend');
-		if (typeof circleOptions.radius === 'undefined') circleOptions.radius = 100;
-		if (typeof circleOptions.resolution === 'undefined') circleOptions.resolution = 361;
+        if (!circleOptions) throw new Error('No options defiend');
+        if (typeof circleOptions.radius === 'undefined') circleOptions.radius = 100;
+        if (typeof circleOptions.resolution === 'undefined') circleOptions.resolution = 361;
 
-		this.setValues(circleOptions);
+        this.setValues(circleOptions);
 
-		let angle = 0
-		let points = [];
+        let angle = 0
+        let points = [];
 
-		let x = 0, y = 0, z = 0;
+        let x = 0, y = 0, z = 0;
 
-		let startPosition = (this.startPosition instanceof THREE.Object3D) ? this.startPosition.position : this.startPosition;
+        let startPosition = (this.startPosition instanceof THREE.Object3D) ? this.startPosition.position : this.startPosition;
 
-		// Plot the points of the circle;
-		for (let i = 0; i < this.resolution; i++) {
+        // Plot the points of the circle;
+        for (let i = 0; i < this.resolution; i++) {
 
-			// Set i as the angle;
-			if (this.startAngle) angle = this.startAngle++;
-			else angle = i;
+            // Set i as the angle;
+            if (this.startAngle) angle = this.startAngle++;
+            else angle = i;
 
-			// Plot the x y coordinates
-			x = startPosition.x + (this.radius * Math.cos(toRadians(angle)));
-			y = startPosition.y + (this.radius * Math.sin(toRadians(angle)));
-			z = startPosition.z + 0;
+            // Plot the x y coordinates
+            x = startPosition.x + (this.radius * Math.cos(toRadians(angle)));
+            y = startPosition.y + (this.radius * Math.sin(toRadians(angle)));
+            z = startPosition.z + 0;
 
-			points.push(new THREE.Vector3(x, y, z));
+            points.push(new THREE.Vector3(x, y, z));
 
-		}
+        }
 
-		// geometry
-		let geometry = new THREE.BufferGeometry();
+        // geometry
+        let geometry = new THREE.BufferGeometry();
 
-		// material
-		let material = new THREE.LineBasicMaterial({ color: this.color });
+        // material
+        let material = new THREE.LineBasicMaterial({ color: this.color });
 
-		// circle
-		var circle = new THREE.Line(geometry, material);
+        // circle
+        var circle = new THREE.Line(geometry, material);
 
-		let pointsLen = points.length;
+        let pointsLen = points.length;
 
-		circle.points = points;
+        circle.points = points;
 
-		// attributes
-		let positions = new Float32Array(pointsLen * 3); // 3 vertices per point
+        // attributes
+        let positions = new Float32Array(pointsLen * 3); // 3 vertices per point
 
-		geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
 
-		addPositions(circle, points);
+        addPositions(circle, points);
 
-		return circle;
-	}
+        return circle;
+    }
 
-	/**
-	 * @author iisaiah
-	 * 
-	 * @param {THREE.Object3D} threeObj 
-	 * @param {Array} points Array of THREE.Vector3 objects
-	 */
-	function addPositions(threeObj, points) {
-		let positions = threeObj.geometry.attributes.position.array;
+    Circle.prototype.drawCircle = function (circleOptions) {
 
-		let index = 0;
+        this.setValues(circleOptions);
 
-		for (let i = 0, l = points.length; i < l; i++) {
-			positions[index++] = points[i].x;
-			positions[index++] = points[i].y;
-			positions[index++] = points[i].z;
-		}
-	}
+        var geometry = new THREE.CircleGeometry(this.radius, 80);
+
+        // Remove center vertex
+        geometry.vertices.shift();
+
+        let startPosition = (this.startPosition instanceof THREE.Object3D) ? this.startPosition.position : this.startPosition;
+
+        var material = new THREE.LineBasicMaterial({
+            color: this.color,
+            transparent: true,
+            opacity: this.opacity,
+            side: THREE.DoubleSide
+        });
+
+        var circle = new THREE.Mesh(geometry, material);
+
+        circle.position.x = startPosition.x;
+        circle.position.y = startPosition.y;
+        circle.position.z = startPosition.z;
+
+        // circle.rotation.x = Math.PI / 2;
+
+        return circle;
+    }
 
     Sphere.prototype = new Visual();
 
     function Sphere() {
-       this.radius;
-       this.color;
-       this.startPosition;
-       this.opacity;
+        this.radius;
+        this.color;
+        this.startPosition;
+        this.opacity;
     }
 
-	Sphere.prototype.drawSphere = function (circleOptions) {
-        
-        if(!circleOptions) return;
+    Sphere.prototype.drawSphere = function (circleOptions) {
+
+        if (!circleOptions) return;
 
         this.setValues(circleOptions);
 
         let geometry = new THREE.SphereGeometry(this.radius, 50, 50, 0, Math.PI * 2, 0, Math.PI * 2);
-	    let material = new THREE.MeshBasicMaterial( { 
-            color: this.color, 
+        let material = new THREE.MeshBasicMaterial({
+            color: this.color,
             transparent: true,
             opacity: this.opacity
-            }
+        }
         );
 
         let sphere = new THREE.Mesh(geometry, material);
@@ -204,10 +217,39 @@ var VISUAL = (function () {
         sphere.position.x = startPosition.x;
         sphere.position.y = startPosition.y;
         sphere.position.z = startPosition.z;
-    
+
         return sphere;
-        
-	}
+
+    }
+
+    /**
+		 * @author iisaiah
+		 * 
+		 * @param {THREE.Object3D} startNode 
+		 * @param {THREE.Object3D} endNode 
+		 * @param {Number} speed 
+		 */
+    let connectNodesLines = function (points, color) {
+
+        let material = new THREE.LineBasicMaterial({
+            color: color
+        });
+
+        let geometry = new THREE.BufferGeometry();
+
+        var line = new THREE.Line(geometry, material);
+
+        line.points = points;
+
+        // attributes
+        let positions = new Float32Array(points.length * 3); // 3 vertices per point
+
+        geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        addPositions(line, points);
+
+        return line;
+    }
 
 	/**
 	 * @author iisaiah
@@ -216,36 +258,55 @@ var VISUAL = (function () {
 	 * @param {Number} pointsLen 
 	 * @param {Number} speed 
 	 */
-	let animateLine = function (threeObj, pointsLen, speed) {
-		if (!threeObj) throw new Error('Three Object is not defined');
-		if (!pointsLen) throw new Error('Point length is not defined');
-		if (!speed) throw new Error('Speed is not defined');
+    let animateLine = function (threeObj, pointsLen, speed) {
+        if (!threeObj) throw new Error('Three Object is not defined');
+        if (!pointsLen) throw new Error('Point length is not defined');
+        if (!speed) throw new Error('Speed is not defined');
 
-		threeObj.geometry.setDrawRange(0, 0); // Starts the buffered geometry add point 0
-		sceneGL.add(threeObj);
+        threeObj.geometry.setDrawRange(0, 0); // Starts the buffered geometry add point 0
+        sceneGL.add(threeObj);
 
-		var drawCount = 0;
-		var animation = setInterval(function () {
-			if (drawCount >= pointsLen) clearInterval(animation);
+        var drawCount = 0;
+        var animation = setInterval(function () {
+            if (drawCount >= pointsLen) clearInterval(animation);
 
-			drawCount = (drawCount + speed);
-			threeObj.geometry.setDrawRange(0, drawCount);
-		}, 10);
+            drawCount = (drawCount + speed);
+            threeObj.geometry.setDrawRange(0, drawCount);
+        }, 10);
 
-	}
+    }
 
-	function setParams(values) {
-		for (let key in values) {
+    /**
+ * @author iisaiah
+ * 
+ * @param {THREE.Object3D} threeObj 
+ * @param {Array} points Array of THREE.Vector3 objects
+ */
+    function addPositions(threeObj, points) {
+        let positions = threeObj.geometry.attributes.position.array;
 
-		}
-	}
+        let index = 0;
 
-	return {
-		CubicBezier: CubicBezier,
-		BorderCircle: BorderCircle,
+        for (let i = 0, l = points.length; i < l; i++) {
+            positions[index++] = points[i].x;
+            positions[index++] = points[i].y;
+            positions[index++] = points[i].z;
+        }
+    }
+
+    function setParams(values) {
+        for (let key in values) {
+
+        }
+    }
+
+    return {
+        CubicBezier: CubicBezier,
+        Circle: Circle,
         Sphere: Sphere,
-		animateLine: animateLine,
-	}
+        animateLine: animateLine,
+        connectNodesLines: connectNodesLines,
+    }
 
 }());
 

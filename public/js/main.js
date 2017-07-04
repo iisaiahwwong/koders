@@ -30,7 +30,7 @@ function init() {
 	// GL Renderer
 	rendererGL = new THREE.WebGLRenderer({ antialias: true });
 	rendererGL.setSize(window.innerWidth, window.innerHeight);
-	rendererGL.setClearColor(WHITE_THEME, 1);
+	rendererGL.setClearColor(BLACK_THEME, 1);
 	rendererGL.domElement.style.zIndex = 5;
 	graphicContainer.appendChild(rendererGL.domElement);
 
@@ -59,9 +59,10 @@ function init() {
 
 	/** Camera Controls */
 	controls = new THREE.TrackballControls(camera);
-	controls.rotateSpeed = 0.5;
-	controls.minDistance = 500;
-	controls.maxDistance = 6000;	// controls = new THREE.OrbitControls(camera);
+
+
+
+	// controls = new THREE.OrbitControls(camera);
 	// controls.rotateSpeed = 0.5;
 	// controls.minDistance = 500;
 	// controls.maxDistance = 6000;
@@ -139,7 +140,7 @@ function initVisual() {
 
 
 function initSelection() {
-	var circle = new VISUAL.BorderCircle().drawBorderCircle({
+	var circle = new VISUAL.Circle().drawBorderCircle({
 		startPosition: new THREE.Vector3(0, 0, 0),
 		color: 0x1A5E75,
 		resolution: 361,
@@ -201,52 +202,187 @@ function tweet() {
     LAYOUTS
 ----------------------------------------------------- */
 
+function initSentimentVisual() {
+	defineArea();
+	eventListener();
+}
+
 let POSITIVE_AREA, NEGATIVE_AREA, NEUTRAL_AREA;
 
 function defineArea() {
 	
-	POSITIVE_AREA = new VISUAL.Sphere().drawSphere({
-		startPosition: new THREE.Vector3(-1000, 0, 0),
-		color: 0x015F6F,
-		opacity: 0.5,
-		radius: 300
+	POSITIVE_AREA = new VISUAL.Circle().drawCircle({
+		startPosition: new THREE.Vector3(-4500, 0, 0),
+		color: 0x1071AD,
+		opacity: 0.0,
+		radius: 2500,
 	});
 
-	NEGATIVE_AREA = new VISUAL.Sphere().drawSphere({
+	NEGATIVE_AREA = new VISUAL.Circle().drawCircle({
 		startPosition: new THREE.Vector3(0, 0, 0),
 		color: 0xF54907,
-		opacity: 0.5,
-		radius: 300
+		opacity: 0.0,
+		radius: 2500
 	});
 
-	NEUTRAL_AREA = new VISUAL.Sphere().drawSphere({
-		startPosition: new THREE.Vector3(1000, 0, 0),
+	NEUTRAL_AREA = new VISUAL.Circle().drawCircle({
+		startPosition: new THREE.Vector3(3500, 0, 0),
 		color: 0x191D42,
-		opacity: 0.5,
-		radius: 300
+		opacity: 0.0,
+		radius: 2-00
 	});
 
-	POSITIVE_AREA.scale.set(0,0,0);
-	NEGATIVE_AREA.scale.set(0,0,0);
-	NEUTRAL_AREA.scale.set(0,0,0);
+	POSITIVE_AREA.scale.set(0.1,0.1,0.1);
+	NEGATIVE_AREA.scale.set(0.1,0.1,0.1);
+	NEUTRAL_AREA.scale.set(0.1,0.1,0.1);
+
+	enableOverlay(POSITIVE_AREA, 0.1);
+	enableOverlay(NEGATIVE_AREA, 0.2);
+	enableOverlay(NEUTRAL_AREA, 0.3);
 
 	sceneGL.add(POSITIVE_AREA);
 	sceneGL.add(NEGATIVE_AREA);
 	sceneGL.add(NEUTRAL_AREA);
 }
 
-function drawNodes() {
+function enableOverlay(node, order) {
+	node.renderOrder = order;
+
+	node.material.polygonOffset = true;
+	node.material.depthTest = true;
+	node.material.depthWrite = true;
+	node.material.polygonOffsetFactor = -10;
+	node.material.polygonOffsetUnits = 0;
+}
+
+function drawNodes(options) {
+
+	let x = options.x, y = options.y, z = options.z;
+	let color = options.color;
+	let opacity = options.opacity;
+	let radius = options.radius;
+
 	let node = new VISUAL.Sphere().drawSphere({
-		startPosition: new THREE.Vector3(0, 0, 0),
-		color: 0xffffff,
-		opacity: 0.5,
-		radius: 100
+		startPosition: new THREE.Vector3(x, y, z),
+		color: color,
+		opacity: opacity,
+		radius: radius
 	});
+
+	if(typeof options.addToScene !== 'undefined') 
+		if(options.addToScene) sceneGL.add(node);
+
+	return node;
+}
+
+function addCSSLabel() {
 }
 
 function grow(node, size) {
+	
 	new TWEEN.Tween(node.scale)
 		.to({x: size, y: size, z: size}, 2000)
 		.easing(TWEEN.Easing.Exponential.In)
 		.start();
+
+	return;
+
+}
+
+function addThenGrow(node, object, size) {
+
+	if(!(object instanceof THREE.Object3D)) {
+		console.warn('Not an instance of THREE.Object3D');
+		return;
+	}
+	
+	new TWEEN.Tween(node.scale)
+		.to({x: size, y: size, z: size}, 2000)
+		.onUpdate(()=> { sceneGL.add(object) })
+		.easing(TWEEN.Easing.Exponential.In)
+		.start();
+
+	return;
+
+}
+
+function changeOpacity(material, opacity) {
+
+	new TWEEN.Tween(material)
+		.to({opacity: opacity}, 1000)
+		.easing(TWEEN.Easing.Exponential.In)
+		.start();
+
+	return;
+
+}
+
+/* ---------------------------------------------------
+    DATA STREAM
+----------------------------------------------------- */
+
+function eventListener() {
+	let angle = 0;	
+	let previousNode;
+	let arr = [];
+
+	for(var i = 0; i < 2500/130; i++) {
+
+		let offset = (2000 - Math.random() * (500 - 40) + 40);
+
+		var x = POSITIVE_AREA.position.x + (offset * Math.cos(toRadians(angle)));
+		let y = POSITIVE_AREA.position.y + (offset * Math.sin(toRadians(angle)));
+		
+		let node = drawNodes({
+			x: x, y: y, z: 0,
+			color: 0xffffff,
+			opacity: 1,
+			radius: Math.random() * (50 - 20 + 1) + 50
+		});
+
+		arr.push(node.position);
+		
+		// changeOpacity(POSITIVE_AREA.material, 1);
+		addThenGrow(POSITIVE_AREA, node, 1);
+
+		var circle = new VISUAL.Circle().drawBorderCircle({
+			startPosition: new THREE.Vector3(POSITIVE_AREA.position.x , POSITIVE_AREA.position.y, 0),
+			color: 0x24FAFA,
+			resolution: 361,
+			startAngle: 0,
+			radius: 2500
+		});
+
+		VISUAL.animateLine(circle, circle.points.length, 2);
+
+		x = NEGATIVE_AREA.position.x + (offset * Math.cos(toRadians(angle)));
+		y = NEGATIVE_AREA.position.y + (offset * Math.sin(toRadians(angle)));
+		
+		node = drawNodes({
+			x: x, y: y, z: 0,
+			color: 0xffffff,
+			opacity: 1,
+			radius: Math.random() * (50 - 20 + 1) + 50
+		});
+
+		var circle = new VISUAL.Circle().drawBorderCircle({
+			startPosition: new THREE.Vector3(NEGATIVE_AREA.position.x , NEGATIVE_AREA.position.y, 0),
+			color: 0xff00000,
+			resolution: 361,
+			startAngle: 0,
+			radius: 2500
+		});
+
+		VISUAL.animateLine(circle, circle.points.length, 2);
+
+		// changeOpacity(NEGATIVE_AREA.material, 0.0);
+		addThenGrow(NEGATIVE_AREA, node, 1);
+
+		angle +=10;
+	}
+
+	let line = VISUAL.connectNodesLines(arr, 0xffffff);
+
+	VISUAL.animateLine(line, line.points.length, 0.05);
+	
 }
