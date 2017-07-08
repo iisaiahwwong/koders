@@ -22,30 +22,51 @@
 </head>
 
 <body>
-  <div class="wrapper">
-    {{!--{{> sidebar }}--}}
+        {{{body}}}
+  {{!--<div class="wrapper">
+    {{> sidebar }}
     <div id="content">
-      {{!--{{> header}}--}}
-      {{{body}}}
+      {{> header}}
     </div>
-  </div>
+  </div>--}}
 </body>
 <script src="/vendor/jquery/jquery-3.2.1.min.js"></script>
 <script src="/vendor/bootstrap/js/bootstrap.min.js"></script>
 
 <script type="text/javascript" src="/vendor/threejs/three.js"></script>
 <script type="text/javascript" src="/vendor/threejs/OrbitControls.js"></script>
-<script type="text/javascript" src="/vendor/threejs/TrackballControls.js"></script>
-<script type="text/javascript" src="/vendor/threejs/EffectComposer.js"></script>
 <script type="text/javascript" src="/vendor/threejs/stats.js"></script>
 <script type="text/javascript" src="/vendor/threejs/CSS3DRenderer.js"></script>
 <script type="text/javascript" src="/vendor/threejs/CanvasRenderer.js"></script>
-<script type="text/javascript" src="/vendor/threejs/Projector.js"></script>
+
 <script type="text/javascript" src="/vendor/threejs/tween.min.js"></script>
+
+<script type="x-shader/x-vertex" id="vertexshader">
+			attribute float size;
+			attribute vec3 customColor;
+			varying vec3 vColor;
+			void main() {
+				vColor = customColor;
+				vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+				gl_PointSize = size * ( 300.0 / -mvPosition.z );
+				gl_Position = projectionMatrix * mvPosition;
+			}
+</script>
+
+<script type="x-shader/x-fragment" id="fragmentshader">
+			uniform vec3 color;
+			uniform sampler2D texture;
+			varying vec3 vColor;
+			void main() {
+				gl_FragColor = vec4( color * vColor, 1.0 );
+				gl_FragColor = gl_FragColor * texture2D( texture, gl_PointCoord );
+				if ( gl_FragColor.a < ALPHATEST ) discard;
+			}
+</script>
 
 <script src="/js/threeGeoJSON.js"></script>
 <script src="/js/visual.js"></script>
-<script src="/js/main.js"></script>
+<script src="/js/sentiment.js"></script>
 
 <script type="text/javascript">
     $(document).ready(function () {
