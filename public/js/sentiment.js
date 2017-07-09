@@ -187,18 +187,18 @@ function Tweet() {
 }
 
 /* ---------------------------------------------------
-    LAYOUTS
+    SENTIMENT
 ----------------------------------------------------- */
 
 function initSentimentVisual() {
 
-    intialiseParticleBuffer(100, 300);
+    intialiseParticleBuffer(1000, 500);
 
     let index = 0;
 
     let interval = setInterval(function() {
         
-        if(index == 100) clearInterval(interval);
+        if(index == 1000) clearInterval(interval);
 
         let tweet = new Tweet();
         tweet.tweet = index+' tweet'
@@ -209,12 +209,12 @@ function initSentimentVisual() {
 
         index++;
 
-    }, 1000)
+    }, 1)
 
 
-    // setTimeout(function() {
-    //     spaceOut(10);
-    // }, 2000);
+    setTimeout(function() {
+        cluster();
+    }, 5000);
 }
 
 var particles;
@@ -244,7 +244,7 @@ function intialiseParticleBuffer(size, spacing) {
         let phi = THREE.Math.randFloatSpread(360);
 
         vertex.x = spacing * Math.sin(theta) * Math.cos(phi);
-        vertex.y = spacing * 1.1 * Math.sin(theta) * Math.sin(phi);
+        vertex.y = spacing * Math.sin(theta) * Math.sin(phi);
         vertex.z = spacing * Math.cos(theta);
 
         vertex.toArray(positions, i * 3);
@@ -281,23 +281,6 @@ function intialiseParticleBuffer(size, spacing) {
 
 }
 
-function spaceOut(space) {
-    let geometry = particles.geometry;
-    let attributes = geometry.attributes;
-    let index;
-
-    for (let i = 0; i < attributes.position.array.length; i++) {
-
-        index = i * 3;
-
-        attributes.position.array[index] *= space;
-        attributes.position.array[index + 1] *= space;
-        attributes.position.array[index + 2] *= space;
-        attributes.position.needsUpdate = true;
-        
-    }
-}
-
 
 function changeOpacity(material, opacity) {
 
@@ -313,6 +296,10 @@ function changeOpacity(material, opacity) {
 /* ---------------------------------------------------
     DATA STREAM
 ----------------------------------------------------- */
+
+var positive_index = [];
+var negative_index = [];
+var neutral_index = [];
 
 function pushData(tweet) {
 
@@ -332,7 +319,7 @@ function pushData(tweet) {
 
         let index = key * 3;
 
-        let colorHex = processSentiment(tweet);
+        let colorHex = processSentiment(tweet, key);
 
         color.set(colorHex);
 
@@ -342,9 +329,9 @@ function pushData(tweet) {
 
         let twitterHandleLabel = addLabel(new THREE.Vector3(x, y, z), tweet.twitter_handle, 'twitter-handle', -45);
         tweet.cssTwitterHandle = twitterHandleLabel;
-        sceneCss.add(twitterHandleLabel);
+//        sceneCss.add(twitterHandleLabel);
 
-        let cssLabel = addLabel(new THREE.Vector3(x, y, z), tweet.tweet, 'tweet', 60);
+        let cssLabel = addLabel(new THREE.Vector3(x, y, z), tweet.sentiment, 'tweet', 60);
         tweet.cssLabel = cssLabel
 
         attributes.customColor.array[index] = color.r;
@@ -360,7 +347,7 @@ function pushData(tweet) {
     }
 }
 
-function processSentiment(tweet) {
+function processSentiment(tweet, key) {
 
     if(! (tweet instanceof Tweet)) return;
     
@@ -368,10 +355,13 @@ function processSentiment(tweet) {
 
     switch(sentiment) {
         case 'NEGATIVE':
+            negative_index.push(key);
             return 0xff0000;
         case 'NEUTRAL':
+            neutral_index.push(key);
             return 0xDAF8FA;
         case 'POSITIVE':
+            positive_index.push(key);
             return 0x0ff7ed;
         default:
             return 0xDAF8FA;
@@ -393,6 +383,46 @@ function addLabel(bindObject, text, cssClass, offset) {
 	
 	return object;
     
+}
+
+/* ---------------------------------------------------
+	LAYOUT
+----------------------------------------------------- */
+
+function spaceOut(space) {
+
+    let geometry = particles.geometry;
+    let attributes = geometry.attributes;
+    let index;
+
+    for (let i = 0; i < attributes.position.array.length; i++) {
+
+        index = i * 3;
+
+        attributes.position.array[index] *= space;
+        attributes.position.array[index + 1] *= space;
+        attributes.position.array[index + 2] *= space;
+        attributes.position.needsUpdate = true;
+        
+    }
+}
+
+function cluster() {
+
+    let geometry = particles.geometry;
+    let attributes = geometry.attributes;
+    let index;
+
+    let tmp = negative_index.concat(neutral_index);
+
+    for(let i = 0; i < tmp.length; i++) {
+        
+        index = tmp[i];
+
+        attributes.opacity.array[index] = 0;
+        attributes.opacity.needsUpdate = true;
+
+    }
 }
 
 

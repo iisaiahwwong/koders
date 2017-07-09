@@ -18,10 +18,11 @@ html, body {
 }
 
 body {
-  padding: 50px;
-  font-family: Nobel-Light, Helvetica, Arial, sans-serif;
-  height: 100%; 
-  background-color: #E6EAEB;
+    margin: 0;
+    padding: 20px;
+    font-family: Nobel-Light, Helvetica, Arial, sans-serif;
+    height: 100%; 
+    background-color: #0B141B;
 }
 
 .logo {
@@ -40,11 +41,16 @@ a, a:hover, a:focus {
 .navbar {
     z-index: 102;
     padding: 0px;
-    background-color: transparent;
+    background-color: #0B141B;
     border: none;
     border-radius: 3px;
     margin-bottom: 40px;
-    box-shadow: 1px 0px 10px 1px rgba(53, 129, 125, 0.5);
+    border-bottom: 1px solid #1A5E75;
+    /*box-shadow: 1px 0px 10px 1px rgba(53, 129, 125, 0.5);*/
+}
+
+.navbar a {
+    color: #fff !important;
 }
 
 .navbar .account {
@@ -70,16 +76,18 @@ a, a:hover, a:focus {
 .wrapper {
     display: flex;
     align-items: stretch;
+    margin: 10px 10px 0px 20px;
 }
 
 #sidebar {
-    z-index: 100;
-    min-width: 250px;
-    max-width: 250px;
-    background: #E6EAEB;
-    color: #000;
+    min-width: 220px;
+    max-width: 220px;
+    background: #0B141B;
+    color: #fff;
     transition: all 0.6s cubic-bezier(0.945, 0.020, 0.270, 0.665);
     transform-origin: bottom left;
+    z-index: 100;
+    margin-right: 20px;
 }
 
 #sidebar.active {
@@ -89,7 +97,7 @@ a, a:hover, a:focus {
 
 #sidebar .sidebar-header {
     padding: 30px 0px 10px 20px;
-    background: #E6EAEB;
+    background: #0B141B;
 }
 
 #sidebar ul.components {
@@ -101,13 +109,12 @@ a, a:hover, a:focus {
 }
 
 #sidebar ul p {
-    color: #000;
+    color: #fff;
     padding: 10px;
 }
 
 #sidebar .classify {
   display: block;
-  color: #000;
   font-family: Nobel-Bold;
   font-weight: 300;
   font-size: 0.8em;
@@ -117,17 +124,17 @@ a, a:hover, a:focus {
 #sidebar ul li a {
     padding: 12px 12px 12px 20px;
     margin: 10px 0;
-    font-size: 1.1em;
+    font-size: 0.8em;
     display: block;
 }
 #sidebar ul li a:hover {
-    color: #7386D5;
+    color: #1A5E75;
     background: #fff;
 }
 
 #sidebar ul li.active > a, a[aria-expanded="true"] {
-    color: #fff;
-    background: #363447;
+    color: #000;
+    background: #0DD8F9;
 }
 
 
@@ -152,6 +159,7 @@ a[aria-expanded="true"]::before {
     font-size: 0.9em !important;
     padding-left: 30px !important;
     background: #D1DADF;
+    color: black;
 }
 
 ul.CTAs {
@@ -186,8 +194,8 @@ a.article, a.article:hover {
     padding: 20px;
     min-height: 100vh;
     transition: all 0.3s;
-    width: 82%;
-    box-shadow: 0 1px 10px 0 rgba(0, 0, 0, 0.1);
+    width: 100%;
+    /*box-shadow: 0 1px 10px 0 rgba(0, 0, 0, 0.1);*/
 }
 
 
@@ -202,7 +210,7 @@ a.article, a.article:hover {
     height: 2px;
     margin: 0 auto;
     display: block;
-    background: #555;
+    background: #fff;
     transition: all 0.8s cubic-bezier(0.810, -0.330, 0.345, 1.375);
     transition-delay: 0.2s;
 }
@@ -223,6 +231,7 @@ a.article, a.article:hover {
     opacity: 1;
     margin: 5px auto;
 }
+
 
 /* ---------------------------------------------------
     MEDIAQUERIES
@@ -256,6 +265,15 @@ a.article, a.article:hover {
         transform: rotate(-45deg) translate(1px, -1px);
     }
 
+}
+
+/* ---------------------------------------------------
+    CONTENT
+----------------------------------------------------- */
+#main {
+    position: absolute;
+    top: 0;
+    z-index: 1;
 }
 
 /* ---------------------------------------------------
