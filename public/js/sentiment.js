@@ -525,10 +525,48 @@ function genTweet(tweet) {
     let $tweet = $('.tweet');
     let $sentiment = $('.sentiment');
     let $value = $('.sentiment-value');
+    let $emotion = $('.emotion');
+
+
+    let emotionBar = getSentimentGradient(tweet.sentiment);
+    let emotionText = getSentimentText(tweet.sentiment);
 
     $tweet.text(tweet.tweet);
     $sentiment.text(tweet.sentiment);
     $value.text(tweet.sentiment_value);
+    $emotion.attr('class', 'emotion ' + emotionBar);
+    $sentiment.attr('class', 'sentiment ' + emotionText);
+    $value.attr('class', 'sentiment-value ' + emotionText);
+}
+
+function getSentimentGradient(sentiment) {
+    sentiment = sentiment.toUpperCase();
+
+    switch(sentiment) {
+        case 'NEGATIVE':
+            return 'negative';
+        case 'NEUTRAL': 
+            return 'neutral';
+        case 'POSITIVE':
+            return 'positive';
+        default:
+            return 'positive';
+    }
+}
+
+function getSentimentText(sentiment) {
+    sentiment = sentiment.toUpperCase();
+
+    switch(sentiment) {
+        case 'NEGATIVE':
+            return 'negative-text';
+        case 'NEUTRAL': 
+            return 'neutral-text';
+        case 'POSITIVE':
+            return 'positive-text';
+        default:
+            return 'positive-text';
+    }
 }
 
 

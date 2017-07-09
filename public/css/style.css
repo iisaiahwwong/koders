@@ -378,14 +378,41 @@ a.article, a.article:hover {
     padding: 10px;
 }
 
-.red {
+.positive-text {
+    color: #0cebeb;
+}
+
+.neutral-text {
+    color: #56CCF2;
+}
+
+.negative-text {
     color: #ff0000;
 }
+
 
 .negative {
     background: #ee0979;
     background: -webkit-linear-gradient(to right, #ee0979, #ff6a00); 
     background: linear-gradient(to right, #ee0979, #ff6a00); 
+}
+
+.positive {
+    background: #0cebeb;  /* fallback for old browsers */
+    background: -webkit-linear-gradient(to right, #29ffc6, #20e3b2, #0cebeb);  /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to right, #29ffc6, #20e3b2, #0cebeb); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+}
+
+.neutral {
+    background: #56CCF2;  /* fallback for old browsers */
+    background: -webkit-linear-gradient(to right, #2F80ED, #56CCF2);  /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to right, #2F80ED, #56CCF2); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+}
+
+.neutral {
+    background: #56CCF2;  /* fallback for old browsers */
+    background: -webkit-linear-gradient(to right, #2F80ED, #56CCF2);  /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to right, #2F80ED, #56CCF2); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 }
 
 .positive-btn {
