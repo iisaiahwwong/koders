@@ -16,8 +16,7 @@ const
     WHITE_THEME = 0xE6EAEB,
     BLACK_THEME = 0x0B141B;
 
-const PARTICLE_SIZE = 100;
-
+const PARTICLE_SIZE = 50;
 
 function init() {
     /** Camera */
@@ -192,24 +191,25 @@ function Tweet() {
 
 function initSentimentVisual() {
 
-    intialiseParticleBuffer(1000, 500);
+    intialiseParticleBuffer(1000, 300);
 
     let index = 0;
 
     let interval = setInterval(function() {
         
-        if(index == 1000) clearInterval(interval);
+        if(index == 200) clearInterval(interval);
 
         let tweet = new Tweet();
-        tweet.tweet = index+' tweet'
+        tweet.tweet = index+' Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.'
         tweet.twitter_handle = handle[getRandomInt(0, 2)];
         tweet.sentiment = emotions[getRandomInt(0, 2)];
-    
+        tweet.sentiment_value = getRandomInt(1, 10);
+
         pushData(tweet);
 
         index++;
 
-    }, 1)
+    }, 50);
 
 
     // setTimeout(function() {
@@ -266,7 +266,7 @@ function intialiseParticleBuffer(size, spacing) {
     material = new THREE.ShaderMaterial({
         uniforms: {
             color: { value: new THREE.Color(0xffffff) },
-            texture: { value: new THREE.TextureLoader().load("/textures/sprites/node 12.11.18 PM.png") }
+            texture: { value: new THREE.TextureLoader().load("/textures/sprites/circle.png") }
         },
         vertexShader: document.getElementById('vertexshader').textContent,
         fragmentShader: document.getElementById('fragmentshader').textContent,
@@ -327,11 +327,11 @@ function pushData(tweet) {
         let y = attributes.position.array[index + 1];
         let z = attributes.position.array[index + 2];
 
-        let twitterHandleLabel = addLabel(new THREE.Vector3(x, y, z), tweet.twitter_handle, 'twitter-handle', -45);
+        let twitterHandleLabel = addLabel(new THREE.Vector3(x, y, z), tweet.twitter_handle, 'twitter-handle-3d', -45);
         tweet.cssTwitterHandle = twitterHandleLabel;
 //        sceneCss.add(twitterHandleLabel);
 
-        let cssLabel = addLabel(new THREE.Vector3(x, y, z), tweet.sentiment, 'tweet', 60);
+        let cssLabel = addLabel(new THREE.Vector3(x, y, z), tweet.sentiment, 'tweet-3d', 0);
         tweet.cssLabel = cssLabel
 
         attributes.customColor.array[index] = color.r;
@@ -359,12 +359,12 @@ function processSentiment(tweet, key) {
             return 0xff0000;
         case 'NEUTRAL':
             neutral_index.push(key);
-            return 0xDAF8FA;
+            return 0x56CCF2;
         case 'POSITIVE':
             positive_index.push(key);
-            return 0x0ff7ed;
+            return 0x20e3b2;
         default:
-            return 0xDAF8FA;
+            return 0x20e3b2;
     }
 }
 
@@ -486,7 +486,8 @@ function onDocumentMouseDown(event) {
         tempLabel = particles.userData[INTERSECTED].cssLabel;
         sceneCss.add(tempLabel);
 
-        console.log(particles.userData[INTERSECTED]);
+        let tweet = particles.userData[INTERSECTED];
+        genTweet(tweet);
     }
     else { // No interaction
 
@@ -506,6 +507,30 @@ function setUpRaycaster(event) {
 
     raycaster.setFromCamera(mouse, camera);
 }
+
+/* ---------------------------------------------------
+	INTERPOLATION 
+----------------------------------------------------- */
+
+function genTweet(tweet) {
+
+    if(! (tweet instanceof Tweet)) {
+        $('.info-overview .user-msg').show();
+        return;
+    }
+
+    // Remove message box
+    if($('.info-overview .user-msg').length > 0) $('.info-overview .user-msg').hide();
+    
+    let $tweet = $('.tweet');
+    let $sentiment = $('.sentiment');
+    let $value = $('.sentiment-value');
+
+    $tweet.text(tweet.tweet);
+    $sentiment.text(tweet.sentiment);
+    $value.text(tweet.sentiment_value);
+}
+
 
 function removeCSSObject(label) {
     if(!label) return;

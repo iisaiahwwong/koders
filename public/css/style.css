@@ -80,8 +80,8 @@ a, a:hover, a:focus {
 }
 
 #sidebar {
-    min-width: 220px;
-    max-width: 220px;
+    min-width: 300px;
+    max-width: 300px;
     background: #0B141B;
     color: #fff;
     transition: all 0.6s cubic-bezier(0.945, 0.020, 0.270, 0.665);
@@ -91,12 +91,12 @@ a, a:hover, a:focus {
 }
 
 #sidebar.active {
-    margin-left: -250px;
+    margin-left: -320px;
     transform: rotateY(100deg);
 }
 
 #sidebar .sidebar-header {
-    padding: 30px 0px 10px 20px;
+    padding: 20px 0px 0px 20px;
     background: #0B141B;
 }
 
@@ -122,19 +122,26 @@ a, a:hover, a:focus {
 }
 
 #sidebar ul li a {
-    padding: 12px 12px 12px 20px;
-    margin: 10px 0;
-    font-size: 0.8em;
+    padding: 12px 12px 0px 0px;
+    margin: 0px 10px 0px 10px;
+    font-size: 1em;
     display: block;
+    border-top: 1px solid white;
+        /*background: #0DD8F9;*/
 }
-#sidebar ul li a:hover {
+.title {
+    background: #0DD8F9;
+    color: black;
+    padding: 5px;
+}
+/*#sidebar ul li a:hover {
     color: #1A5E75;
     background: #fff;
-}
+}*/
 
 #sidebar ul li.active > a, a[aria-expanded="true"] {
-    color: #000;
-    background: #0DD8F9;
+    color: white;
+    /*background: #0DD8F9;*/
 }
 
 
@@ -158,8 +165,8 @@ a[aria-expanded="true"]::before {
 #sidebar ul ul a {
     font-size: 0.9em !important;
     padding-left: 30px !important;
-    background: #D1DADF;
-    color: black;
+    /*background: #D1DADF;*/
+    color: white;
 }
 
 ul.CTAs {
@@ -190,7 +197,7 @@ a.article, a.article:hover {
     CONTENT STYLE
 ----------------------------------------------------- */
 #content {
-    z-index: 101;
+    /*z-index: 101;*/
     padding: 20px;
     min-height: 100vh;
     transition: all 0.3s;
@@ -238,7 +245,7 @@ a.article, a.article:hover {
 ----------------------------------------------------- */
 @media (max-width: 768px) {
     #sidebar {
-        margin-left: -250px;
+        margin-left: -300px;
         transform: rotateY(90deg);
     }
     #sidebar.active {
@@ -281,7 +288,7 @@ a.article, a.article:hover {
     CSS LABEL -> TWEETS 
 ----------------------------------------------------- */
 
-.twitter-handle {
+.twitter-handle-3d {
     font-family: Nobel-Light;
     font-size: 0.5em;
     letter-spacing: 2px;
@@ -289,20 +296,116 @@ a.article, a.article:hover {
     text-transform: capitalize;
 }
 
-.tweet {
+.tweet-3d {
     font-family: Nobel-Light;
     text-transform: uppercase;
     letter-spacing: 1px;
     max-width: 70px;
     font-size: 0.5em;
     width: 200px;
-    height: 50px;
-    padding: 2px;
-    border: 1px solid rgba(255,255,255,0.5); 
-    color: white;
+    height: 20px;
+    text-align: center;
+    padding: 2px; 
+    color: black;
+    background: white;
     z-index: 999;
 }
 
-.tweet:hover {
-    background: #ff0000;
+.tweet-3d:hover {
+
+}
+
+/* ---------------------------------------------------
+    HUD
+----------------------------------------------------- */
+
+.user-msg {
+    width: 280px;
+    height: 250px;
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0B141B;
+    position: absolute;
+}
+
+.user-msg p {
+    font-family: Nobel-Bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 2em;
+    margin-top: 0px;
+}
+
+.col-md {
+    height: 200px;
+    max-height: 200px;
+}
+
+.col-lg {
+    height: 300px;
+    max-height: 300px;
+}
+
+.info-overview {
+    padding: 12px 12px 12px 0px;
+    margin: 0px 10px 0px 10px;
+    font-size: 0.8em;
+}
+
+.tweet-wrapper {
+    overflow-y: auto;
+    height: 120px;
+    max-height: 120px; 
+}
+
+.heading {
+    font-family: Nobel-Bold;
+
+}
+
+.section {
+    margin-bottom: 10px;
+    display: block;
+}
+
+.emotion {
+    width: 100%;
+    padding: 10px;
+}
+
+.red {
+    color: #ff0000;
+}
+
+.negative {
+    background: #ee0979;
+    background: -webkit-linear-gradient(to right, #ee0979, #ff6a00); 
+    background: linear-gradient(to right, #ee0979, #ff6a00); 
+}
+
+.positive-btn {
+    width: 100%;
+    background: #0cebeb;  /* fallback for old browsers */
+    background: -webkit-linear-gradient(to right, #29ffc6, #20e3b2, #0cebeb);  /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to right, #29ffc6, #20e3b2, #0cebeb); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+}
+
+.neutral-btn {
+    width: 100%;
+    background: #56CCF2;  /* fallback for old browsers */
+    background: -webkit-linear-gradient(to right, #2F80ED, #56CCF2);  /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to right, #2F80ED, #56CCF2); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+}
+
+.negative-btn {
+    width: 100%;
+    background: #cb2d3e;  /* fallback for old browsers */
+    background: -webkit-linear-gradient(to right, #ef473a, #cb2d3e);  /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to right, #ef473a, #cb2d3e); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+
 }
