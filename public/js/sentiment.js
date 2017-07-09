@@ -139,7 +139,7 @@ function lookToCameraCSS() {
             if(cssObject instanceof THREE.CSS3DObject) {
                 cssObject.lookAt(camera.position);
             }
-            
+
         }
 
     }
@@ -182,6 +182,7 @@ function Tweet() {
     this.sentiment;
     this.sentiment_value;
     this.cssLabel
+    this.cssTwitterHandle;
 
 }
 
@@ -339,7 +340,11 @@ function pushData(tweet) {
         let y = attributes.position.array[index + 1];
         let z = attributes.position.array[index + 2];
 
-        let cssLabel = addLabel(new THREE.Vector3(x, y, z), tweet, 'tweet', 60);
+        let twitterHandleLabel = addLabel(new THREE.Vector3(x, y, z), tweet.twitter_handle, 'twitter-handle', -45);
+        tweet.cssTwitterHandle = twitterHandleLabel;
+        sceneCss.add(twitterHandleLabel);
+
+        let cssLabel = addLabel(new THREE.Vector3(x, y, z), tweet.tweet, 'tweet', 60);
         tweet.cssLabel = cssLabel
 
         attributes.customColor.array[index] = color.r;
@@ -373,13 +378,13 @@ function processSentiment(tweet) {
     }
 }
 
-function addLabel(bindObject, tweet, cssClass, offset) {
+function addLabel(bindObject, text, cssClass, offset) {
     
     let startObject = (bindObject instanceof THREE.Object3D) ? bindObject.position : bindObject;
 	
 	var label = document.createElement('div');
 	label.className = cssClass;
-	label.innerHTML = tweet.tweet;
+	label.innerHTML = text;
 	
 	var object = new THREE.CSS3DObject(label);
 	object.position.x = startObject.x + offset;

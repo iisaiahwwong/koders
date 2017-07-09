@@ -262,8 +262,12 @@ a.article, a.article:hover {
     CSS LABEL -> TWEETS 
 ----------------------------------------------------- */
 
-.tweet-handle {
-    
+.twitter-handle {
+    font-family: Nobel-Light;
+    font-size: 0.5em;
+    letter-spacing: 2px;
+    color: white;
+    text-transform: capitalize;
 }
 
 .tweet {
