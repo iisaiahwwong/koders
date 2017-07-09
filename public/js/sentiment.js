@@ -62,6 +62,9 @@ function init() {
     document.addEventListener('touchstart', onDocumentTouchStart, false);
     document.addEventListener('mousedown', onDocumentMouseDown, false);
 
+    /** Listeners */
+    btnSuiteOnClick();
+    
     /** Camera Controls */
     //    controls = new THREE.TrackballControls(camera);
 
@@ -430,6 +433,13 @@ function cluster() {
 	INTERACTION LISTENER
 ----------------------------------------------------- */
 
+function btnSuiteOnClick() {
+
+    $('.positive-btn').click(function() {
+        cluster();
+    });
+}
+
 function onDocumentTouchStart(event) {
     event.preventDefault();
 
@@ -511,6 +521,10 @@ function setUpRaycaster(event) {
 /* ---------------------------------------------------
 	INTERPOLATION 
 ----------------------------------------------------- */
+
+function counter() {
+
+}
 
 function genTweet(tweet) {
 
