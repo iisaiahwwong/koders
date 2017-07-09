@@ -22,7 +22,7 @@ const PARTICLE_SIZE = 100;
 function init() {
     /** Camera */
     // Initialize THREEjs Camera
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.5, 10000);
+    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 10000);
     camera.position.z = 600;
     camera.position.y = 0;
 
@@ -212,9 +212,9 @@ function initSentimentVisual() {
     }, 1)
 
 
-    setTimeout(function() {
-        cluster();
-    }, 5000);
+    // setTimeout(function() {
+    //     cluster();
+    // }, 5000);
 }
 
 var particles;

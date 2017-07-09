@@ -19,9 +19,9 @@ html, body {
 
 body {
     margin: 0;
-    padding: 20px;
+
     font-family: Nobel-Light, Helvetica, Arial, sans-serif;
-    height: 100%; 
+
     background-color: #0B141B;
 }
 
@@ -274,6 +274,7 @@ a.article, a.article:hover {
     position: absolute;
     top: 0;
     z-index: 1;
+    display: block;
 }
 
 /* ---------------------------------------------------
