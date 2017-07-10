@@ -446,6 +446,11 @@ a.article, a.article:hover {
 
 }
 
+.all-btn {
+    width: 100%;
+    color: black;
+}
+
 .progress {
 
     background-color: transparent;

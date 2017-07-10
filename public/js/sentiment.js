@@ -7,23 +7,26 @@ $(function () {
 ----------------------------------------------------- */
 
 function initSocket(callback) {
+
     let socket = io();
+
     socket.emit('stream');
 
-    socket.on('stream', function(data) {
+    socket.on('stream', function (data) {
 
         let object = JSON.parse(data);
 
-        for(let i = 0; i < object.length; i++) {
-            
+        for (let i = 0; i < object.length; i++) {
+
             let tweet = new Tweet();
 
             tweet.construct(object[i]);
 
             callback(tweet);
-            
+
         }
     });
+
 }
 
 /**
@@ -150,20 +153,20 @@ function animate() {
     render();
     controls.update();
     // stats.end();
-    
+
     lookToCameraCSS();
 }
 
 function lookToCameraCSS() {
 
-      if(sceneCss.children.length > 0) {
+    if (sceneCss.children.length > 0) {
         let cssObjects = sceneCss.children;
 
-        for(let i = 0; i < cssObjects.length; i++) {
+        for (let i = 0; i < cssObjects.length; i++) {
 
             cssObject = cssObjects[i];
 
-            if(cssObject instanceof THREE.CSS3DObject) {
+            if (cssObject instanceof THREE.CSS3DObject) {
                 cssObject.lookAt(camera.position);
             }
 
@@ -200,7 +203,7 @@ let handle = [
 ]
 
 function Tweet() {
-    
+
     this._id;
     this.create_timestamp;
     this.twitter_name;
@@ -213,9 +216,9 @@ function Tweet() {
 
 }
 
-Tweet.prototype.construct = function(tweet) {
-    
-    for(let key in tweet) {
+Tweet.prototype.construct = function (tweet) {
+
+    for (let key in tweet) {
 
         this[key] = tweet[key];
 
@@ -235,13 +238,13 @@ function initSentimentVisual() {
 
     let index = 0;
 
-    let interval = setInterval(function() {
+    let interval = setInterval(function () {
         index++;
 
-        if(index == 200) clearInterval(interval);
+        if (index == 200) clearInterval(interval);
 
         let tweet = new Tweet();
-        tweet.tweet = index+' Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.'
+        tweet.tweet = index + ' Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.'
         tweet.twitter_handle = handle[getRandomInt(0, 2)];
         tweet.sentiment = emotions[getRandomInt(0, 2)];
         tweet.sentiment_value = getRandomInt(1, 10);
@@ -260,7 +263,7 @@ function initSentimentVisual() {
 var particles;
 
 function intialiseParticleBuffer(size, spacing) {
-    
+
     let particleCount = size;
 
     let positions = new Float32Array(particleCount * 3);
@@ -341,17 +344,20 @@ var positive_index = [];
 var negative_index = [];
 var neutral_index = [];
 
+var filter;
+
 function pushData(tweet) {
 
-    if(!(tweet instanceof Tweet)) return;
+    if (!(tweet instanceof Tweet)) return;
 
     let userData = particles.userData;
 
     let color = new THREE.Color();
-   
-    for(let key in userData) {
-        
-        if(userData[key] instanceof Tweet) continue;
+
+    for (let key in userData) {
+
+        if (userData[key] instanceof Tweet) continue;
+
         userData[key] = tweet;
 
         let geometry = particles.geometry;
@@ -362,6 +368,11 @@ function pushData(tweet) {
         let colorHex = processSentiment(tweet, key);
 
         color.set(colorHex);
+        
+        attributes.customColor.array[index] = color.r;
+        attributes.customColor.array[index + 1] = color.g;
+        attributes.customColor.array[index + 2] = color.b;
+        attributes.customColor.needsUpdate = true;
 
         let x = attributes.position.array[index];
         let y = attributes.position.array[index + 1];
@@ -369,17 +380,17 @@ function pushData(tweet) {
 
         let twitterHandleLabel = addLabel(new THREE.Vector3(x, y, z), tweet.twitter_handle, 'twitter-handle-3d', -45);
         tweet.cssTwitterHandle = twitterHandleLabel;
-//        sceneCss.add(twitterHandleLabel);
+        //        sceneCss.add(twitterHandleLabel);
 
-        let cssLabel = addLabel(new THREE.Vector3(x, y, z), tweet.sentiment, 'tweet-3d', 0);
-        tweet.cssLabel = cssLabel
+        let cssLabel = addLabel(new THREE.Vector3(x, y, z), tweet, 'tweet-3d', 0);
+        tweet.cssLabel = cssLabel;
 
-        attributes.customColor.array[index] = color.r;
-        attributes.customColor.array[index + 1] = color.g;
-        attributes.customColor.array[index + 2] = color.b;
-        attributes.customColor.needsUpdate = true;
+        if(!filter) 
+            attributes.opacity.array[key] = 1;
+        else if(filter.toLowerCase() === tweet.sentiment.toLowerCase()) 
+            attributes.opacity.array[key] = 1;
+        
 
-        attributes.opacity.array[key] = 1;
         attributes.opacity.needsUpdate = true;
 
         counter();
@@ -398,26 +409,26 @@ function ratio() {
     let negative_length = negative_index.length;
     let positive_length = positive_index.length;
     let neutral_length = neutral_index.length;
-    
+
     let total = negative_length + positive_length + neutral_length;
 
-    $bar_positive.css('width', (positive_length/total*100) + '%'); 
-    $bar_neutral.css('width', (neutral_length/total*100) + '%'); 
-    $bar_negative.css('width', (negative_length/total*100) + '%'); 
+    $bar_positive.css('width', (positive_length / total * 100) + '%');
+    $bar_neutral.css('width', (neutral_length / total * 100) + '%');
+    $bar_negative.css('width', (negative_length / total * 100) + '%');
 
     $bar_positive.text(positive_length);
-    $bar_neutral.text(neutral_length); 
-    $bar_negative.text(negative_length); 
-    
+    $bar_neutral.text(neutral_length);
+    $bar_negative.text(negative_length);
+
 }
 
 function processSentiment(tweet, key) {
 
-    if(! (tweet instanceof Tweet)) return;
-    
+    if (!(tweet instanceof Tweet)) return;
+
     sentiment = tweet.sentiment.toUpperCase();
 
-    switch(sentiment) {
+    switch (sentiment) {
         case 'NEGATIVE':
             negative_index.push(key);
             return 0xff0000;
@@ -433,20 +444,20 @@ function processSentiment(tweet, key) {
 }
 
 function addLabel(bindObject, text, cssClass, offset) {
-    
+
     let startObject = (bindObject instanceof THREE.Object3D) ? bindObject.position : bindObject;
-	
-	var label = document.createElement('div');
-	label.className = cssClass;
-	label.innerHTML = text;
-	
-	var object = new THREE.CSS3DObject(label);
-	object.position.x = startObject.x + offset;
-	object.position.y = startObject.y;
-	object.position.z = startObject.z;
-	
-	return object;
-    
+
+    var label = document.createElement('div');
+    label.className = cssClass;
+    label.innerHTML = text.sentiment;
+
+    var object = new THREE.CSS3DObject(label);
+    object.position.x = startObject.x + offset;
+    object.position.y = startObject.y;
+    object.position.z = startObject.z;
+
+    return object;
+
 }
 
 /* ---------------------------------------------------
@@ -467,28 +478,58 @@ function spaceOut(space) {
         attributes.position.array[index + 1] *= space;
         attributes.position.array[index + 2] *= space;
         attributes.position.needsUpdate = true;
-        
+
     }
 }
 
-function cluster() {
+function cluster(type) {
+
+    let invisible;
+    let visible;
+
+    filter = type;
+
+    switch (type) {
+        case 'positive':
+            invisible = negative_index.concat(neutral_index);
+            visible = positive_index;
+            break;
+        case 'negative':
+            invisible = positive_index.concat(neutral_index);
+            visible = negative_index;
+            break;
+        case 'neutral':
+            invisible = negative_index.concat(positive_index);
+            visible = neutral_index;
+            break;
+        default:
+            invisible = null;
+            filter = null;
+            loopOpacity(positive_index.concat(neutral_index, negative_index), 1);
+    }
+
+    if(!invisible) return;
+
+    loopOpacity(visible, 1);
+    loopOpacity(invisible, 0);
+}
+
+function loopOpacity(arr, opacity) {
 
     let geometry = particles.geometry;
     let attributes = geometry.attributes;
     let index;
 
-    let tmp = negative_index.concat(neutral_index);
+    for(let i = 0; i < arr.length; i++) {
+       
+        index = arr[i];
 
-    for(let i = 0; i < tmp.length; i++) {
-        
-        index = tmp[i];
-
-        attributes.opacity.array[index] = 0;
+        attributes.opacity.array[index] = opacity;
         attributes.opacity.needsUpdate = true;
 
     }
-}
 
+} 
 
 /* ---------------------------------------------------
 	INTERACTION LISTENER
@@ -496,8 +537,20 @@ function cluster() {
 
 function btnSuiteOnClick() {
 
-    $('.positive-btn').click(function() {
-        cluster();
+    $('.positive-btn').click(function () {
+        cluster('positive');
+    });
+
+    $('.neutral-btn').click(function () {
+        cluster('neutral');
+    });
+
+    $('.negative-btn').click(function () {
+        cluster('negative');
+    });
+
+     $('.all-btn').click(function () {
+        cluster('all');
     });
 
 }
@@ -588,18 +641,19 @@ let tweet_count = 0;
 function counter() {
     ++tweet_count;
     $('#tweet-counter').text(tweet_count);
+
+    // if(tweet_count % 100 === 0) spaceOut(1.15);
 }
 
 function genTweet(tweet) {
-
-    if(! (tweet instanceof Tweet)) {
+    if (!(tweet instanceof Tweet)) {
         $('.info-overview .user-msg').show();
         return;
     }
 
     // Remove message box
-    if($('.info-overview .user-msg').length > 0) $('.info-overview .user-msg').hide();
-    
+    if ($('.info-overview .user-msg').length > 0) $('.info-overview .user-msg').hide();
+
     let $tweet = $('.tweet');
     let $sentiment = $('.sentiment');
     let $value = $('.sentiment-value');
@@ -612,7 +666,7 @@ function genTweet(tweet) {
 
     $tweet.text(tweet.tweet);
     $sentiment.text(tweet.sentiment);
-    $value.text(tweet.sentiment_value + '0%');
+    $emotion.text(tweet.sentiment_value + '0%');
     $emotion.attr('class', 'emotion  progress-bar ' + emotionBar);
     $sentiment.attr('class', 'sentiment ' + emotionText);
     // $value.attr('class', 'sentiment-value ' + emotionText);
@@ -621,10 +675,10 @@ function genTweet(tweet) {
 function getSentimentGradient(sentiment) {
     sentiment = sentiment.toUpperCase();
 
-    switch(sentiment) {
+    switch (sentiment) {
         case 'NEGATIVE':
             return 'negative';
-        case 'NEUTRAL': 
+        case 'NEUTRAL':
             return 'neutral';
         case 'POSITIVE':
             return 'positive';
@@ -636,10 +690,10 @@ function getSentimentGradient(sentiment) {
 function getSentimentText(sentiment) {
     sentiment = sentiment.toUpperCase();
 
-    switch(sentiment) {
+    switch (sentiment) {
         case 'NEGATIVE':
             return 'negative-text';
-        case 'NEUTRAL': 
+        case 'NEUTRAL':
             return 'neutral-text';
         case 'POSITIVE':
             return 'positive-text';
@@ -650,10 +704,12 @@ function getSentimentText(sentiment) {
 
 
 function removeCSSObject(label) {
-    if(!label) return;
 
-    if(typeof label.length !== 'undefined') 
-        if(label.length > 0) return;
+    if (!label) return;
+
+    if (typeof label.length !== 'undefined')
+        if (label.length > 0) return;
 
     sceneCss.remove(sceneCss.getObjectById(label.id));
+
 }
