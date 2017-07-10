@@ -1,6 +1,31 @@
 $(function () {
     init();
 })
+
+/* ---------------------------------------------------
+    SOCKET
+----------------------------------------------------- */
+
+function initSocket(callback) {
+    let socket = io();
+    socket.emit('stream');
+
+    socket.on('stream', function(data) {
+
+        let object = JSON.parse(data);
+
+        for(let i = 0; i < object.length; i++) {
+            
+            let tweet = new Tweet();
+
+            tweet.construct(object[i]);
+
+            callback(tweet);
+            
+        }
+    });
+}
+
 /**
  * THREE JS SETUP
  * Using CSS Renderer and WebGL Renderer
@@ -64,7 +89,7 @@ function init() {
 
     /** Listeners */
     btnSuiteOnClick();
-    
+
     /** Camera Controls */
     //    controls = new THREE.TrackballControls(camera);
 
@@ -176,7 +201,7 @@ let handle = [
 
 function Tweet() {
     
-    this.tweet_id;
+    this._id;
     this.create_timestamp;
     this.twitter_name;
     this.twitter_handle;
@@ -188,18 +213,31 @@ function Tweet() {
 
 }
 
+Tweet.prototype.construct = function(tweet) {
+    
+    for(let key in tweet) {
+
+        this[key] = tweet[key];
+
+    }
+
+}
+
 /* ---------------------------------------------------
     SENTIMENT
 ----------------------------------------------------- */
 
 function initSentimentVisual() {
 
+    // initSocket(pushData);
+
     intialiseParticleBuffer(1000, 300);
 
     let index = 0;
 
     let interval = setInterval(function() {
-        
+        index++;
+
         if(index == 200) clearInterval(interval);
 
         let tweet = new Tweet();
@@ -210,7 +248,6 @@ function initSentimentVisual() {
 
         pushData(tweet);
 
-        index++;
 
     }, 50);
 
@@ -345,9 +382,33 @@ function pushData(tweet) {
         attributes.opacity.array[key] = 1;
         attributes.opacity.needsUpdate = true;
 
+        counter();
+        ratio();
         break;
 
     }
+}
+
+function ratio() {
+
+    let $bar_positive = $('.bar-positive');
+    let $bar_negative = $('.bar-negative');
+    let $bar_neutral = $('.bar-neutral');
+
+    let negative_length = negative_index.length;
+    let positive_length = positive_index.length;
+    let neutral_length = neutral_index.length;
+    
+    let total = negative_length + positive_length + neutral_length;
+
+    $bar_positive.css('width', (positive_length/total*100) + '%'); 
+    $bar_neutral.css('width', (neutral_length/total*100) + '%'); 
+    $bar_negative.css('width', (negative_length/total*100) + '%'); 
+
+    $bar_positive.text(positive_length);
+    $bar_neutral.text(neutral_length); 
+    $bar_negative.text(negative_length); 
+    
 }
 
 function processSentiment(tweet, key) {
@@ -438,6 +499,7 @@ function btnSuiteOnClick() {
     $('.positive-btn').click(function() {
         cluster();
     });
+
 }
 
 function onDocumentTouchStart(event) {
@@ -521,9 +583,11 @@ function setUpRaycaster(event) {
 /* ---------------------------------------------------
 	INTERPOLATION 
 ----------------------------------------------------- */
+let tweet_count = 0;
 
 function counter() {
-
+    ++tweet_count;
+    $('#tweet-counter').text(tweet_count);
 }
 
 function genTweet(tweet) {
@@ -541,16 +605,17 @@ function genTweet(tweet) {
     let $value = $('.sentiment-value');
     let $emotion = $('.emotion');
 
-
     let emotionBar = getSentimentGradient(tweet.sentiment);
     let emotionText = getSentimentText(tweet.sentiment);
 
+    $emotion.css('width', (tweet.sentiment_value * 10) + '%');
+
     $tweet.text(tweet.tweet);
     $sentiment.text(tweet.sentiment);
-    $value.text(tweet.sentiment_value);
-    $emotion.attr('class', 'emotion ' + emotionBar);
+    $value.text(tweet.sentiment_value + '0%');
+    $emotion.attr('class', 'emotion  progress-bar ' + emotionBar);
     $sentiment.attr('class', 'sentiment ' + emotionText);
-    $value.attr('class', 'sentiment-value ' + emotionText);
+    // $value.attr('class', 'sentiment-value ' + emotionText);
 }
 
 function getSentimentGradient(sentiment) {

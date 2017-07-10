@@ -8,6 +8,9 @@ var expressHbs =  require('express-handlebars');
 var mongoose = require('mongoose');
 var session = require('express-session');
 
+// Socket IO
+var io = require('./socket/websocket');
+
 // Session 
 var MongoStore = require('connect-mongo')(session);
 var passport = require('passport');
@@ -22,6 +25,14 @@ var users = require('./routes/users');
 var cognitiveRoute = require('./routes/cognitive');
 
 var app = express();
+
+// Connect to mongodb
+mongoose.connect('mongodb://alexisaiah:alexisaiah@ds153392.mlab.com:53392/koders', function(err) {
+  if(err) throw err;
+});
+
+// Assigns app io variable
+app.io = io;
 
 // view engine setup
 app.engine('.hbs', expressHbs({

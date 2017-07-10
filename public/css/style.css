@@ -342,8 +342,8 @@ a.article, a.article:hover {
 }
 
 .col-md {
-    height: 200px;
-    max-height: 200px;
+    height: 210px;
+    max-height: 210px;
 }
 
 .col-lg {
@@ -374,8 +374,17 @@ a.article, a.article:hover {
 }
 
 .emotion {
-    width: 100%;
-    padding: 10px;
+    width: 0%;
+    color: black;
+}
+
+.emotion-wrapper {
+    height: 20px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    border-radius: 4px;
+    -webkit-box-shadow: inset 0 1px 2px rgba(0,0,0,.1);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.1);
 }
 
 .positive-text {
@@ -434,5 +443,29 @@ a.article, a.article:hover {
     background: #cb2d3e;  /* fallback for old browsers */
     background: -webkit-linear-gradient(to right, #ef473a, #cb2d3e);  /* Chrome 10-25, Safari 5.1-6 */
     background: linear-gradient(to right, #ef473a, #cb2d3e); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+
+}
+
+.progress {
+
+    background-color: transparent;
+
+}
+
+.bar-positive {
+
+    width: 0%;
+
+}
+
+.bar-neutral {
+
+    width: 0%;
+
+}
+
+.bar-negative {
+
+    width: 0%;
 
 }

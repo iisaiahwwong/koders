@@ -10,10 +10,31 @@
       <div class="info-overview">
         <div class="section">
           <span class="heading">Total Tweets:</span>
-          <span class="tweet-counter">10</span>
+          <span id="tweet-counter">0</span>
         </div>
         <div class="section">
+            <span class="title">Ratio</span>
+          </div>
+        <div class="section">
+          <div class="progress">
+            <div class="progress-bar bar-positive positive" role="progressbar" >
 
+            </div>
+          </div>
+        </div>
+        <div class="section">
+          <div class="progress">
+            <div class="progress-bar bar-neutral neutral" role="progressbar" >
+
+            </div>
+          </div>
+        </div>
+        <div class="section">
+          <div class="progress">
+            <div class="progress-bar bar-negative negative" role="progressbar" >
+
+            </div>
+          </div>
         </div>
       </div>
     </li>
@@ -21,7 +42,7 @@
       <a href="/"><span class="title">Tweet</span></a>
       <div class="info-overview">
         <div class="user-msg">
-            <p>Select a tweet!</p>
+          <p>Select a tweet!</p>
         </div>
         <div class="section tweet-wrapper">
           <span class="tweet"></span>
@@ -30,17 +51,19 @@
           <span class="title">EMOTION</span>
         </div>
         <div class="section">
+          <span class="heading">Value:</span>
           <div class="emotion-wrapper">
-            <div class="negative emotion"></div>
+            <div class="progress-bar bar-positive positive emotion" role="progressbar" >
+              <span class="sentiment-value"></span>
+            </div>
           </div>
         </div>
+      
         <div class="section">
           <span class="heading">Sentiment:</span>
           <span class="sentiment"></span>
         </div>
         <div class="section">
-          <span class="heading">Value:</span>
-          <span class="sentiment-value "></span>
         </div>
       </div>
     </li>
