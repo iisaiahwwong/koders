@@ -135,6 +135,7 @@ function render() {
  * Change the page aspect ratio and size based on user's browser
  */
 function onWindowResize() {
+
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
 
@@ -142,9 +143,11 @@ function onWindowResize() {
     rendererCss.setSize(window.innerWidth, window.innerHeight);
 
     render();
+
 }
 
 function animate() {
+
     requestAnimationFrame(animate);
     // stats.begin();
 
@@ -155,6 +158,7 @@ function animate() {
     // stats.end();
 
     lookToCameraCSS();
+
 }
 
 function lookToCameraCSS() {
@@ -233,13 +237,14 @@ Tweet.prototype.construct = function (tweet) {
 
 function initSentimentVisual() {
     
-    intialiseParticleBuffer(1000, 300);
+    intialiseParticleBuffer(5000, 400);
 
     initSocket(pushData);
 
 }
 
 function seedData() {
+
     let index = 0;
 
     let interval = setInterval(function () {
@@ -321,6 +326,8 @@ function intialiseParticleBuffer(size, spacing) {
 
     sceneGL.add(particles);
 
+    particles.updateMatrixWorld();
+
 }
 
 
@@ -381,7 +388,7 @@ function pushData(tweet) {
         tweet.cssTwitterHandle = twitterHandleLabel;
         //        sceneCss.add(twitterHandleLabel);
 
-        let cssLabel = addLabel(new THREE.Vector3(x, y, z), tweet, 'tweet-3d', 0);
+        let cssLabel = addTweetLabel(new THREE.Vector3(x, y, z), tweet, 'tweet-3d', 0);
         tweet.cssLabel = cssLabel;
 
         if(!filter) 
@@ -451,6 +458,31 @@ function addLabel(bindObject, text, cssClass, offset) {
     label.innerHTML = text.sentiment;
 
     var object = new THREE.CSS3DObject(label);
+    object.position.x = startObject.x + offset;
+    object.position.y = startObject.y;
+    object.position.z = startObject.z;
+
+    return object;
+
+}
+
+function addTweetLabel(bindObject, tweet, cssClass, offset) {
+
+    if (!(tweet instanceof Tweet)) console.warn('Not an instance of Tweet');
+
+    let startObject = (bindObject instanceof THREE.Object3D) ? bindObject.position : bindObject;
+
+    let label = document.createElement('div');
+    label.className = cssClass;
+
+    let twitter_handle = document.createElement('p');
+    twitter_handle.className = 'handle-3d';
+
+    twitter_handle.innerHTML = '@'+tweet.twitter_handle;
+
+    label.appendChild(twitter_handle);
+
+    let object = new THREE.CSS3DObject(label);
     object.position.x = startObject.x + offset;
     object.position.y = startObject.y;
     object.position.z = startObject.z;
@@ -602,7 +634,9 @@ function onDocumentMouseMove(event) {
     let geometry = particles.geometry;
     let attributes = geometry.attributes;
 
-    let intersects = raycaster.intersectObject(particles);
+    particles.updateMatrixWorld();
+
+    let intersects = raycaster.intersectObject(particles, true);
 
     if (intersects.length > 0) {
         if (INTERSECTED != intersects[0].index) {
@@ -630,7 +664,9 @@ function onDocumentMouseDown(event) {
 
     setUpRaycaster(event);
 
-    var intersects = raycaster.intersectObject(particles);
+    particles.updateMatrixWorld();
+
+    var intersects = raycaster.intersectObject(particles, true);
 
     if (intersects.length > 0) {
 
@@ -671,7 +707,7 @@ function counter() {
     ++tweet_count;
     $('#tweet-counter').text(tweet_count);
 
-    // if(tweet_count % 100 === 0) spaceOut(1.15);
+    // if(tweet_count % 50 === 0 && tweet_count < 500) spaceOut(1.4);
 }
 
 function genTweet(tweet) {

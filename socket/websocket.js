@@ -27,8 +27,8 @@ io.on('connection', function(socket) {
             let interval = setInterval(function() {
                 
                 if(index === data.length) clearInterval(interval);
-                console.log(data[index]);
-                socket.emit('stream', JSON.stringify([data[index]]));
+                
+                if(data[index]) socket.emit('stream', JSON.stringify([data[index]]));
                 index++;
             }, 100);
         }) 

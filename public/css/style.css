@@ -301,7 +301,6 @@ a.article, a.article:hover {
     text-transform: uppercase;
     letter-spacing: 1px;
     max-width: 70px;
-    font-size: 0.5em;
     width: 400px;
     height: 30px;
     text-align: center;
@@ -309,10 +308,15 @@ a.article, a.article:hover {
     color: black;
     background: white;
     z-index: 999;
+    overflow: hidden;
 }
 
 .tweet-3d:hover {
 
+}
+
+.handle-3d {
+    font-size: 0.5em;
 }
 
 /* ---------------------------------------------------
