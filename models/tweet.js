@@ -2,6 +2,7 @@ var mongoose = require('mongoose');
 Schema = mongoose.Schema;
 
 var tweetSchema = new Schema({
+
     _id: { type: String, required: true, default: mongoose.Types.ObjectId() },
     tweet: { type: String, required: true },
     twitter_name: { type: String, required: true },
@@ -9,7 +10,8 @@ var tweetSchema = new Schema({
     sentiment: { type: String, required: true },
     sentiment_value: { type: Number, default: false },
     create_timestamp: Date,
-
+    hashtag: { type: String }
+    
 });
 
 tweetSchema.pre('save', function (next, done) {

@@ -223,16 +223,18 @@ var VISUAL = (function () {
     }
 
     /**
-		 * @author iisaiah
-		 * 
-		 * @param {THREE.Object3D} startNode 
-		 * @param {THREE.Object3D} endNode 
-		 * @param {Number} speed 
-		 */
-    let connectNodesLines = function (points, color) {
+     * @author iisaiah
+     * 
+     * @param {Array} points contains array of vertices
+     * @param {Hex} color 
+     * @param {opacity} opacity 
+     */
+    let connectNodesLines = function (points, color, opacity) {
 
         let material = new THREE.LineBasicMaterial({
-            color: color
+            color: color,
+            transparent: true,
+            opacity: opacity
         });
 
         let geometry = new THREE.BufferGeometry();

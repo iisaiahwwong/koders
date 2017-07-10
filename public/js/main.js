@@ -82,8 +82,8 @@ function init() {
 	window.addEventListener('resize', onWindowResize, false);
 	animate();
 	
-	genPointCloud();
-	// initSentimentVisual();
+	// genPointCloud();
+	initSentimentVisual();
 }
 
 /**

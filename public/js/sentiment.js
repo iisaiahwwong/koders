@@ -211,6 +211,7 @@ function Tweet() {
     this.tweet;
     this.sentiment;
     this.sentiment_value;
+    this.hashtag;
     this.cssLabel
     this.cssTwitterHandle;
 
@@ -231,11 +232,14 @@ Tweet.prototype.construct = function (tweet) {
 ----------------------------------------------------- */
 
 function initSentimentVisual() {
-
-    // initSocket(pushData);
-
+    
     intialiseParticleBuffer(1000, 300);
 
+    initSocket(pushData);
+
+}
+
+function seedData() {
     let index = 0;
 
     let interval = setInterval(function () {
@@ -253,11 +257,6 @@ function initSentimentVisual() {
 
 
     }, 50);
-
-
-    // setTimeout(function() {
-    //     cluster();
-    // }, 5000);
 }
 
 var particles;
@@ -505,6 +504,7 @@ function cluster(type) {
         default:
             invisible = null;
             filter = null;
+            removeTHREEObject(line);
             loopOpacity(positive_index.concat(neutral_index, negative_index), 1);
     }
 
@@ -512,6 +512,7 @@ function cluster(type) {
 
     loopOpacity(visible, 1);
     loopOpacity(invisible, 0);
+    connectNodes(visible);
 }
 
 function loopOpacity(arr, opacity) {
@@ -529,6 +530,34 @@ function loopOpacity(arr, opacity) {
 
     }
 
+}
+
+var line;
+
+function connectNodes(cluster_index) {
+
+    let arr = [];
+
+    let geometry = particles.geometry;
+    let attributes = geometry.attributes;
+    let index, x, y, z;
+
+    for(let i = 0; i < cluster_index.length; i++ ) {
+        
+        index = cluster_index[i] * 3;
+
+        x = attributes.position.array[index]
+        y = attributes.position.array[index + 1];
+        z = attributes.position.array[index + 2];
+
+        arr.push(new THREE.Vector3(x, y, z));
+
+    }
+
+    removeTHREEObject(line);
+
+    line = VISUAL.connectNodesLines(arr, 0xe5e5e5, 0.3);
+	VISUAL.animateLine(line, line.points.length, 1);
 } 
 
 /* ---------------------------------------------------
@@ -673,6 +702,7 @@ function genTweet(tweet) {
 }
 
 function getSentimentGradient(sentiment) {
+
     sentiment = sentiment.toUpperCase();
 
     switch (sentiment) {
@@ -685,6 +715,7 @@ function getSentimentGradient(sentiment) {
         default:
             return 'positive';
     }
+
 }
 
 function getSentimentText(sentiment) {
@@ -702,6 +733,16 @@ function getSentimentText(sentiment) {
     }
 }
 
+function removeTHREEObject(obj) {
+    
+    if(!obj) return;
+
+    if(typeof obj.length !== 'undefined')
+        if(obj.length > 0) return;
+    
+    sceneGL.remove(sceneGL.getObjectById(obj.id));
+
+}
 
 function removeCSSObject(label) {
 

@@ -22,15 +22,15 @@ io.on('connection', function(socket) {
         clients[socket.id] = true;
         console.log("Stream started for client");
         
-        Tweet.find({ 
-            create_timestamp: { 
-                '$gte': new Date('2017-3-1'), 
-                '$lt': new Date('2017-10-1') 
-            } 
-        }, function(err, data) {
-          
-            socket.emit('stream', JSON.stringify(data));
-
+        Tweet.find(function(err, data) {
+            let index = 0;
+            let interval = setInterval(function() {
+                
+                if(index === data.length) clearInterval(interval);
+                console.log(data[index]);
+                socket.emit('stream', JSON.stringify([data[index]]));
+                index++;
+            }, 100);
         }) 
     });
 });
