@@ -94,12 +94,13 @@ function init() {
     btnSuiteOnClick();
 
     /** Camera Controls */
-    //    controls = new THREE.TrackballControls(camera);
+    controls = new THREE.TrackballControls(camera);
+    controls.rotateSpeed = 1.5;
+    controls.maxDistance = 6000;
 
-    controls = new THREE.OrbitControls(camera);
+    // controls = new THREE.OrbitControls(camera);
     // controls.rotateSpeed = 0.5;
     // controls.minDistance = 500;
-    // controls.maxDistance = 6000;
 
     /** Start Graphics */
     // composer = compose();

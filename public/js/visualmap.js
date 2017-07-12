@@ -1,5 +1,6 @@
 let peopleParticles;
 let obj;
+let circles;
 
 function People() {
 
@@ -60,7 +61,7 @@ function drawBorder() {
     // Draw border
     let circle = new VISUAL.Circle();
     
-    let circles =  circle.drawThickCircle({
+    circles =  circle.drawThickCircle({
         startPosition: new THREE.Vector3(100, -100, 0),
         color: 0x05FFD2,
         resolution: 361,
@@ -142,11 +143,23 @@ function density() {
 
         for(let i = 0; i < 2000; i++) {
             
-            attributes.size.array[i] = 0.05 * distance;
+            attributes.size.array[i] = 0.045 * distance;
 
             attributes.size.needsUpdate = true;
         }
 
+        let s = Math.pow(distance, -1) * 3000;
+
+
+        for(let i = 0; i < circles.length; i++) {
+
+            if(s < 1)
+                break;
+            if(s > 1.2) s = 1.2;
+
+            circles[i].scale.set(s,s,s);
+
+        }
 
     }, 0); 
 
