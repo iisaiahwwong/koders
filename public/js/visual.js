@@ -158,6 +158,23 @@ var VISUAL = (function () {
         return circle;
     }
 
+    Circle.prototype.drawThickCircle = function(circleOptions, multiplier, segment) {
+        
+        let circles = [];
+        
+        for(let i = 0; i < multiplier; i++) {
+            
+            var circle = this.drawBorderCircle(circleOptions);
+
+            circles.push(circle);
+
+            circleOptions.radius += segment;
+
+        }
+
+        return circles;
+    }
+
     Circle.prototype.drawCircle = function (circleOptions) {
 
         this.setValues(circleOptions);
@@ -261,6 +278,7 @@ var VISUAL = (function () {
 	 * @param {Number} speed 
 	 */
     let animateLine = function (threeObj, pointsLen, speed) {
+        
         if (!threeObj) throw new Error('Three Object is not defined');
         if (!pointsLen) throw new Error('Point length is not defined');
         if (!speed) throw new Error('Speed is not defined');
@@ -275,6 +293,16 @@ var VISUAL = (function () {
             drawCount = (drawCount + speed);
             threeObj.geometry.setDrawRange(0, drawCount);
         }, 10);
+
+    }
+
+    let animateThickLine = function (circles, speed) {
+
+        circles.forEach(function(circle) {
+        
+            this.animateLine(circle, circle.points.length, speed);
+
+        }, this);
 
     }
 
@@ -303,10 +331,12 @@ var VISUAL = (function () {
     }
 
     return {
+
         CubicBezier: CubicBezier,
         Circle: Circle,
         Sphere: Sphere,
         animateLine: animateLine,
+        animateThickLine: animateThickLine,
         connectNodesLines: connectNodesLines,
     }
 

@@ -2,6 +2,8 @@
 <html>
 
 <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>{{title}}</title>
   <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
   <link rel='stylesheet' href='/css/style.css'>
@@ -16,14 +18,16 @@
     {{> sidebar }}
     <div id="content">
       {{> header}}
+
     </div>
   </div>
-    {{{body}}}
+  {{{body}}}
 </body>
 <script src="/vendor/jquery/jquery-3.2.1.min.js"></script>
 <script src="/vendor/bootstrap/js/bootstrap.min.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>
+
 
 <script type="text/javascript" src="/vendor/threejs/three.js"></script>
 
@@ -67,6 +71,7 @@
 <script src="/js/threeGeoJSON.js"></script>
 <script src="/js/visual.js"></script>
 <script src="/js/sentiment.js"></script>
+<script src="/js/visualmap.js"></script>
 
 <script type="text/javascript">
     $(document).ready(function () {

@@ -19,8 +19,8 @@ const
 function init() {
 	/** Camera */
 	// Initialize THREEjs Camera
-	camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.5, 10000);
-	camera.position.z = 3500;
+	camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.5, 1000 );
+	camera.position.z = 1;
 	camera.position.y = 0;
 
 	/** Get ID of div */
@@ -40,7 +40,7 @@ function init() {
 	rendererCss.domElement.style.position = 'absolute';
 	rendererCss.domElement.style.top = '0px';
 	rendererCss.domElement.className = 'cssRenderer';
-	graphicContainer.appendChild(rendererCss.domElement);
+	//graphicContainer.appendChild(rendererCss.domElement);
 
 	/** Scenes */
 	// GL Scene
@@ -58,12 +58,12 @@ function init() {
 	// document.addEventListener('mousedown', onDocumentMouseDown, false);
 
 	/** Camera Controls */
-	controls = new THREE.TrackballControls(camera);
+	// controls = new THREE.TrackballControls(camera);
 
-	// controls = new THREE.OrbitControls(camera);
-	// controls.rotateSpeed = 0.5;
-	// controls.minDistance = 500;
-	// controls.maxDistance = 6000;
+	controls = new THREE.OrbitControls(camera);
+	controls.rotateSpeed = 0.5;
+	controls.minDistance = 500;
+	controls.maxDistance = 6000;
 
 	/** Start Graphics */
 	// composer = compose();
@@ -83,7 +83,10 @@ function init() {
 	animate();
 	
 	// genPointCloud();
-	initSentimentVisual();
+	// initSentimentVisual();
+
+	initMap();
+
 }
 
 /**
@@ -216,6 +219,7 @@ function defineArea() {
 	sceneGL.add(POSITIVE_AREA);
 	sceneGL.add(NEGATIVE_AREA);
 	sceneGL.add(NEUTRAL_AREA);
+
 }
 
 function enableOverlay(node, order) {
@@ -246,6 +250,7 @@ function drawNodes(options) {
 		if (options.addToScene) sceneGL.add(node);
 
 	return node;
+
 }
 
 function addCSSLabel() {
@@ -428,6 +433,7 @@ var INTERSECTED;
 
 
 function onDocumentMouseMove(event) {
+
 	setUpRaycaster(event);
 
 	var geometry = particles.geometry;
@@ -477,4 +483,30 @@ function setUpRaycaster(event) {
 	// console.log('Y | ' + mouse.y);
 
 	raycaster.setFromCamera(mouse, camera);
+}
+
+function initMap() {
+	var planet = new THREE.Object3D();
+
+	//Create a sphere to make visualization easier.
+	var geometry = new THREE.SphereGeometry(10, 32, 32);
+	var material = new THREE.MeshBasicMaterial({
+		color: 0xffffff,
+		wireframe: true,
+		transparent: true
+	});
+	material.opacity = 0;
+
+	var sphere = new THREE.Mesh(geometry, material);
+
+	planet.add(sphere);
+
+	//Draw the GeoJSON
+	$.getJSON("/geojson/countries_states.geojson", function (data) {
+		drawThreeGeo(data, 10, 'sphere', {
+			color: 0xffffff
+		}, planet);
+	});
+
+	sceneGL.add(planet);
 }

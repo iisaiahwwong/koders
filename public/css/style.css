@@ -280,8 +280,8 @@ a.article, a.article:hover {
 #main {
     position: absolute;
     top: 0;
-    z-index: 1;
     display: block;
+    pointer-events: none;
 }
 
 /* ---------------------------------------------------
@@ -301,14 +301,15 @@ a.article, a.article:hover {
     text-transform: uppercase;
     letter-spacing: 1px;
     max-width: 70px;
-    width: 400px;
-    height: 30px;
+    width: 1200px;
+    height: 100px;
     text-align: center;
     padding: 2px; 
     color: black;
-    background: white;
+    background: rgba(255,255,255, 0.5);
     z-index: 999;
     overflow: hidden;
+    border-radius: 5px;
 }
 
 .tweet-3d:hover {
@@ -317,6 +318,11 @@ a.article, a.article:hover {
 
 .handle-3d {
     font-size: 0.5em;
+}
+
+.tweet-desc-3d {
+    font-size: 0.3em;
+    color: black;
 }
 
 /* ---------------------------------------------------
@@ -468,13 +474,27 @@ a.article, a.article:hover {
 }
 
 .bar-neutral {
-
     width: 0%;
-
 }
 
 .bar-negative {
-
     width: 0%;
+}
 
+.search {
+    background: transparent;
+    color: white;
+    text-transform: uppercase;
+    font-size: 1em;
+    letter-spacing: 4px;
+    border: 0px;
+    width: 200px;
+    margin-left: 20px;
+    margin-top: 20px;
+    padding: 5px;
+    outline: none;
+}
+
+.search:focus {
+    border: 0px;
 }

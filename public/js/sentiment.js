@@ -50,7 +50,7 @@ function init() {
     /** Camera */
     // Initialize THREEjs Camera
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 10000);
-    camera.position.z = 600;
+    camera.position.z = 3000;
     camera.position.y = 0;
 
     /** Get ID of div */
@@ -86,9 +86,9 @@ function init() {
     mouse = new THREE.Vector2();
     raycaster = new THREE.Raycaster();
 
-    document.addEventListener('mousemove', onDocumentMouseMove, false);
-    document.addEventListener('touchstart', onDocumentTouchStart, false);
-    document.addEventListener('mousedown', onDocumentMouseDown, false);
+    // document.addEventListener('mousemove', onDocumentMouseMove, false);
+    // document.addEventListener('touchstart', onDocumentTouchStart, false);
+    // document.addEventListener('mousedown', onDocumentMouseDown, false);
 
     /** Listeners */
     btnSuiteOnClick();
@@ -118,7 +118,9 @@ function init() {
     window.addEventListener('resize', onWindowResize, false);
     animate();
 
-    initSentimentVisual();
+    // Start sentiment visualisation
+    // initSentimentVisual();
+    initVisualMap();
 }
 
 /**
@@ -155,6 +157,7 @@ function animate() {
     TWEEN.update();
     render();
     controls.update();
+
     // stats.end();
 
     lookToCameraCSS();
@@ -237,8 +240,8 @@ Tweet.prototype.construct = function (tweet) {
 
 function initSentimentVisual() {
     
-    intialiseParticleBuffer(5000, 400);
-
+    particles = intialiseParticleBuffer(5000, 500, 50);
+//    seedData();
     initSocket(pushData);
 
 }
@@ -266,7 +269,7 @@ function seedData() {
 
 var particles;
 
-function intialiseParticleBuffer(size, spacing) {
+function intialiseParticleBuffer(size, spacing, particleSize) {
 
     let particleCount = size;
 
@@ -298,7 +301,7 @@ function intialiseParticleBuffer(size, spacing) {
         color.set(0x0B141B);
 
         color.toArray(colors, i * 3);
-        sizes[i] = PARTICLE_SIZE;
+        sizes[i] = particleSize;
         userData[i] = '';
 
         opacities[i] = 0;
@@ -321,12 +324,14 @@ function intialiseParticleBuffer(size, spacing) {
         transparent: true,
     });
 
-    particles = new THREE.Points(geometry, material);
+    let particles = new THREE.Points(geometry, material);
     particles.userData = userData;
 
     sceneGL.add(particles);
 
     particles.updateMatrixWorld();
+
+    return particles;
 
 }
 
@@ -391,7 +396,7 @@ function pushData(tweet) {
         let cssLabel = addTweetLabel(new THREE.Vector3(x, y, z), tweet, 'tweet-3d', 0);
         tweet.cssLabel = cssLabel;
 
-        if(!filter) 
+        if(!filter && !fake) 
             attributes.opacity.array[key] = 1;
         else if(filter.toLowerCase() === tweet.sentiment.toLowerCase()) 
             attributes.opacity.array[key] = 1;
@@ -399,7 +404,10 @@ function pushData(tweet) {
 
         attributes.opacity.needsUpdate = true;
 
-        counter();
+        // Increment the counter
+        increment();
+
+        // Updates the ratio emotion of tweets 
         ratio();
         break;
 
@@ -478,9 +486,14 @@ function addTweetLabel(bindObject, tweet, cssClass, offset) {
     let twitter_handle = document.createElement('p');
     twitter_handle.className = 'handle-3d';
 
+    let tweet_desc = document.createElement('p');
+    tweet_desc.className = 'tweet-desc-3d';
+
     twitter_handle.innerHTML = '@'+tweet.twitter_handle;
+    tweet_desc.innerHTML = tweet.tweet;
 
     label.appendChild(twitter_handle);
+    label.appendChild(tweet_desc);
 
     let object = new THREE.CSS3DObject(label);
     object.position.x = startObject.x + offset;
@@ -547,6 +560,27 @@ function cluster(type) {
     connectNodes(visible);
 }
 
+let fake;
+
+function fakeData() {
+
+    let geometry = particles.geometry;
+    let attributes = geometry.attributes;
+
+    let arr = positive_index.concat(neutral_index, negative_index);
+    let line = [];
+
+    loopOpacity(arr, 0);
+
+    for(let i = 0; i < 50; i++) {
+        attributes.opacity.array[i] = 1;
+        line.push(i);
+    }
+
+    connectNodes(line);
+    
+}
+
 function loopOpacity(arr, opacity) {
 
     let geometry = particles.geometry;
@@ -598,7 +632,7 @@ function connectNodes(cluster_index) {
 
 function btnSuiteOnClick() {
 
-    $('.positive-btn').click(function () {
+    $('.positive-btn').on('tap click',function () {
         cluster('positive');
     });
 
@@ -612,6 +646,19 @@ function btnSuiteOnClick() {
 
      $('.all-btn').click(function () {
         cluster('all');
+    });
+
+    $('.search').keyup(function() {
+        let data = $(this).val();
+        console.log(data);
+        if(data.toUpperCase() == '#WWEGBOF') {
+            fakeData();
+            fake = true;
+        }
+        else {
+            cluster('all');
+            fake = false;
+        }
     });
 
 }
@@ -703,7 +750,7 @@ function setUpRaycaster(event) {
 ----------------------------------------------------- */
 let tweet_count = 0;
 
-function counter() {
+function increment() {
     ++tweet_count;
     $('#tweet-counter').text(tweet_count);
 
@@ -790,3 +837,7 @@ function removeCSSObject(label) {
     sceneCss.remove(sceneCss.getObjectById(label.id));
 
 }
+
+/* ---------------------------------------------------
+	CSS  
+----------------------------------------------------- */

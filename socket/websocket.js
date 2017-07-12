@@ -21,7 +21,7 @@ io.on('connection', function(socket) {
     socket.on('stream', function (message) {
         clients[socket.id] = true;
         console.log("Stream started for client");
-        
+    
         Tweet.find(function(err, data) {
             let index = 0;
             let interval = setInterval(function() {
