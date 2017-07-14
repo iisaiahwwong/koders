@@ -7,7 +7,7 @@ router.get('/', function(req, res, next) {
 });
 
 router.get('/sentiment', function(req, res, next) {
-  res.render('index', { title: 'Koders', visual: ()=> { return 'sentiment' } });
+  res.render('sentiment', { title: 'Koders', visual: ()=> { return 'sentiment' } });
 });
 
 router.get('/map', function(req, res, next) {

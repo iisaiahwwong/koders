@@ -21,7 +21,7 @@ io.on('connection', function (socket) {
         clients[socket.id] = true;
 
         Tweet.find(function (err, data) {
-            console.log(data.length);
+
             if (data.length > 0) socket.emit('get', JSON.stringify(data));
 
         });
@@ -29,7 +29,7 @@ io.on('connection', function (socket) {
     });
 
     socket.on('top positive', function() {
-        
+
     });
 
     socket.on('stream', function (message) {

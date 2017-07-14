@@ -146,6 +146,8 @@ a, a:hover, a:focus {
     background: #0DD8F9;
     color: black;
     padding: 5px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
 /*#sidebar ul li a:hover {
     color: #1A5E75;
@@ -508,6 +510,50 @@ a.article, a.article:hover {
 
 .search:focus {
     border: 0px;
+}
+
+.top-hashtags {
+    position: absolute; 
+    width: 300px;
+    height: 320px;
+    border-top: 1px solid white;
+    border-bottom: 1px solid white;
+    bottom: 60px;
+    right: 60px;
+    padding: 10px;
+    overflow-y: auto;
+    color: white;
+    z-index: 999;
+}
+
+.top-hashtags  .heading {
+    padding: 10px 0px;
+}
+.top-hashtags span {
+      display: inline-block;
+}
+.top-hashtags .heading span {
+    display: inline-block;
+    font-family: Nobel-Bold;
+    font-size: 1.2em;
+    text-transform: uppercase;
+}
+.top-hashtags  .rank {
+    width: 30%;
+}
+
+.top-hashtags .data-body .list {
+    padding: 10px 0px;
+    font-size: 1.2em;
+}
+
+.top-hashtags .data-body .list:hover {
+    background: #0DD8F9;
+    color: black;
+}
+
+.font-bg {
+    font-size: 1.5em;
 }
 
 /* ---------------------------------------------------

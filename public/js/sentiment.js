@@ -28,9 +28,9 @@ function initSocket(callback) {
                     clearInterval(interval);
 
                     socket.emit('stream');
+                    sortHashtags();
 
                     return;
-
                 }
 
                 populate(array[index]);
@@ -390,8 +390,10 @@ var positive_index = [];
 var negative_index = [];
 var neutral_index = [];
 
-var topPositiveTweets = [], 
+var topPositiveTweets = [],
     topNegativeTweets = [];
+
+var topHashTags = [];
 
 var filter;
 
@@ -415,6 +417,7 @@ function pushData(tweet) {
         let index = key * 3;
 
         let colorHex = processSentiment(tweet, key);
+        processHashtags(tweet, key);
 
         color.set(colorHex);
 
@@ -435,6 +438,8 @@ function pushData(tweet) {
         tweet.cssLabel = cssLabel;
 
         if (!filter && !fake)
+            attributes.opacity.array[key] = 1;
+        if (!filter)
             attributes.opacity.array[key] = 1;
         else if (filter.toLowerCase() === tweet.sentiment.toLowerCase())
             attributes.opacity.array[key] = 1;
@@ -482,16 +487,16 @@ function processSentiment(tweet, key) {
 
     switch (sentiment) {
         case 'NEGATIVE':
-            negative_index.push(key);
+            negative_index.push({ key: key, tweet: tweet });
             getTopSentimentValues(topNegativeTweets, tweet, key);
             return 0xff0000;
         case 'NEUTRAL':
-            neutral_index.push(key);
+            neutral_index.push({ key: key, tweet: tweet });
             return 0x56CCF2;
         case 'POSITIVE':
-            positive_index.push(key);
+            positive_index.push({ key: key, tweet: tweet });
             getTopSentimentValues(topPositiveTweets, tweet, key);
-            console.log(topPositiveTweets);
+
             return 0x20e3b2;
         default:
             return 0x20e3b2;
@@ -499,13 +504,53 @@ function processSentiment(tweet, key) {
 
 }
 
+function processHashtags(tweet) {
+
+    let hashtag = tweet.hashtag;
+
+    if (!topHashTags.length)
+        topHashTags.push({
+            hashtag: hashtag,
+            counter: 1
+        });
+
+    for (let i = 0; i < topHashTags.length; i++) {
+
+        let current = topHashTags[i].hashtag.toLowerCase();
+
+        if (current === hashtag.toLowerCase()) {
+            topHashTags[i].counter += 1;
+            break;
+        }
+
+        if (i === topHashTags.length - 1)
+            topHashTags.push({
+                hashtag: hashtag,
+                counter: 1
+            });
+
+    }
+
+}
+
+function sortHashtags() {
+
+    topHashTags.sort(function (a, b) {
+        if (b.counter < a.counter)
+            return -1;
+        if (b.counter > a.counter)
+            return 1;
+        return 0;
+    });
+    // populate table
+    genHashtag();
+}
+
 function getTopSentimentValues(array, tweet, key) {
 
-    if(array.length) {
-        for(let i = 0; i < array.length; i++) {
-            console.log(array[i].tweet_id === tweet.tweet_id);
-
-            if(array[i].tweet.tweet_id === tweet.tweet_id) {
+    if (array.length) {
+        for (let i = 0; i < array.length; i++) {
+            if (array[i].tweet.tweet_id === tweet.tweet_id) {
                 return;
             }
         }
@@ -513,8 +558,8 @@ function getTopSentimentValues(array, tweet, key) {
 
     if (array.length !== 5) {
 
-            array.push({key: key, tweet: tweet});
-            return;
+        array.push({ key: key, tweet: tweet });
+        return;
 
     }
 
@@ -532,18 +577,18 @@ function getTopSentimentValues(array, tweet, key) {
 
         if (tweet.sentiment_value == array[0].tweet.sentiment_value) {
 
-            if(new Date(tweet.create_timestamp) - new Date(array[0].tweet.create_timestamp) > 0) {
+            if (new Date(tweet.create_timestamp) - new Date(array[0].tweet.create_timestamp) > 0) {
 
                 array[0].key = key;
                 array[0].tweet = tweet;
-                
+
                 return;
             }
 
             return;
 
         }
-        
+
         array[0].key = key;
         array[0].tweet = tweet;
 
@@ -552,6 +597,40 @@ function getTopSentimentValues(array, tweet, key) {
     }
 
 }
+
+
+function searchHashTag(search) {
+
+    let allTweets = positive_index.concat(neutral_index, negative_index);
+
+    let tweet;
+
+    let filtered = [];
+
+    for (let i = 0; i < allTweets.length; i++) {
+
+        tweet = allTweets[i].tweet.tweet;
+
+        if (new RegExp(search + " ").test(tweet))
+            filtered.push(allTweets[i]);
+
+    }
+
+    if (filtered.length > 1) {
+        // animate searchterm
+        loopOpacity(allTweets, 0);
+        loopOpacity(filtered, 1);
+        connectNodes(filtered);
+
+        return true;
+    }
+
+
+
+    return false;
+
+}
+
 
 function addLabel(bindObject, text, cssClass, offset) {
 
@@ -652,6 +731,8 @@ function cluster(type) {
     if (!invisible) return;
 
     loopOpacity(visible, 1);
+
+    // hide non filtered objects
     loopOpacity(invisible, 0);
     connectNodes(visible);
 }
@@ -685,7 +766,7 @@ function loopOpacity(arr, opacity) {
 
     for (let i = 0; i < arr.length; i++) {
 
-        index = arr[i];
+        index = arr[i].key;
 
         attributes.opacity.array[index] = opacity;
         attributes.opacity.needsUpdate = true;
@@ -706,7 +787,7 @@ function connectNodes(cluster_index) {
 
     for (let i = 0; i < cluster_index.length; i++) {
 
-        index = cluster_index[i] * 3;
+        index = cluster_index[i].key * 3;
 
         x = attributes.position.array[index]
         y = attributes.position.array[index + 1];
@@ -745,16 +826,24 @@ function btnSuiteOnClick() {
     });
 
     $('.search').keyup(function () {
-        let data = $(this).val();
-        console.log(data);
-        if (data.toUpperCase() == '#WWEGBOF') {
-            fakeData();
+        let search = $(this).val();
+
+        if (search.length < 3) return;
+
+        if (searchHashTag(search)) {
             fake = true;
         }
         else {
             cluster('all');
             fake = false;
         }
+    });
+
+    $('.data-body').on('click', '.list', function(){
+        let hashtag = $('.data-hashtag', this).text();
+        console.log(hashtag);
+        cluster('all');
+        searchHashTag(hashtag);
     });
 
 }
@@ -893,6 +982,30 @@ function getSentimentGradient(sentiment) {
             return 'positive';
         default:
             return 'positive';
+    }
+
+}
+
+function genHashtag() {
+    let filtered = topHashTags.slice(0, 5);
+
+    let $databody = $('.data-body');
+
+    if($databody.children().length === 5) $databody.empty();
+
+    for(let i = 0; i < filtered.length; i++) {
+        let list = $('<div>', {class: 'list'});
+        let rank = $('<span>', {class: 'rank'});
+        let hashtag = $('<span>', {class: 'data-hashtag'});
+
+        let obj = filtered[i];
+
+        rank.text(obj.counter);
+        hashtag.text(obj.hashtag);
+
+        list.append(rank).append(hashtag);
+
+        $databody.append(list);
     }
 
 }
