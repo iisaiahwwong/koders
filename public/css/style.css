@@ -12,6 +12,20 @@
     font-family: Nobel-Book;
     src: url('/font/nobel/Nobel-Book.ttf');
 }
+@font-face {
+  font-family: Gotham-Light;
+  src: url("/font/gotham/Gotham-light-webfont.woff");
+}
+@font-face {
+  font-family: Gotham-Bold;
+  src: url("/font/gotham/Gotham-bold-webfont.woff");
+}
+@font-face {
+  font-family: Gotham-Book;
+  src: url("/font/gotham/Gotham-book-webfont.woff");
+}
+
+
 
 html, body {
     height: 100%;
@@ -19,10 +33,9 @@ html, body {
 
 body {
     margin: 0;
-
     font-family: Nobel-Light, Helvetica, Arial, sans-serif;
-
     background-color: #0B141B;
+
 }
 
 .logo {
@@ -202,6 +215,7 @@ a.article, a.article:hover {
     min-height: 100vh;
     transition: all 0.3s;
     width: 100%;
+    overflow: auto;
     /*box-shadow: 0 1px 10px 0 rgba(0, 0, 0, 0.1);*/
 }
 
@@ -300,9 +314,8 @@ a.article, a.article:hover {
     font-family: Nobel-Light;
     text-transform: uppercase;
     letter-spacing: 1px;
-    max-width: 70px;
-    width: 1200px;
-    height: 100px;
+    width: 200px;
+    height: 200px;
     text-align: center;
     padding: 2px; 
     color: black;
@@ -321,7 +334,7 @@ a.article, a.article:hover {
 }
 
 .tweet-desc-3d {
-    font-size: 0.3em;
+    font-size: 1em;
     color: black;
 }
 
@@ -468,9 +481,7 @@ a.article, a.article:hover {
 }
 
 .bar-positive {
-
     width: 0%;
-
 }
 
 .bar-neutral {
@@ -497,4 +508,109 @@ a.article, a.article:hover {
 
 .search:focus {
     border: 0px;
+}
+
+/* ---------------------------------------------------
+    DASHBOARD
+----------------------------------------------------- */
+.panel {
+    border-radius: 5px;
+    background-color: #2E3041;
+    box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 1);
+    padding: 10px;
+    margin-bottom: 50px;
+    color: white;
+}
+.panel-selection {
+    width: 390px;
+    height: 200px;
+}
+
+.panel-title {
+    font-family: Nobel-Light;
+    font-size: 1em;
+    letter-spacing: 30px;
+    text-transform: uppercase;
+    color: white;
+}
+
+/* ---------------------------------------------------
+    Tweet dash
+----------------------------------------------------- */
+
+.total-tweet-wrap {
+    padding: 40px 30px 30px 10px;
+    text-align: center;
+}
+
+.total-tweet-wrap .total-tweets {
+    display: block;
+    font-family: Gotham-Bold;
+    font-size: 3em;
+    color: white;
+    letter-spacing: 5px;
+}
+
+.total-tweet-wrap .sub-title {
+   font-family: Nobel-Light;
+    font-size: 1em;
+        display: block;
+
+    color: white;
+    letter-spacing: 5px; 
+    text-transform: uppercase;
+}
+
+.panel-selection .progress {
+    height: 20px !important;
+    border: 1px rgba(255,255,255,0.2) solid;
+}
+
+.bar-positive-dash {
+    width: 0%;
+}
+
+.bar-neutral-dash {
+    width: 0%;
+}
+
+.bar-negative-dash {
+    width: 0%;
+}
+.over-emotion-wrap {
+    margin-top: 50px;
+}
+.over-emotion-wrap .data {
+    display: block;
+    margin-top: 15px;
+    font-size: 1em;
+}
+.panel-big {
+    min-width: 800px;
+    min-height: 428px;
+    max-width: 800px;
+    max-height: 428px;
+}
+.panel-big .data-wrapper {
+    overflow-y: auto;
+}
+.panel-big .heading {
+    box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.8);    padding: 10px;
+}
+.panel-big span {
+      display: inline-block;
+}
+.panel-big .heading span {
+    display: inline-block;
+    font-family: Nobel-Bold;
+    font-size: 1.5em;
+    text-transform: uppercase;
+}
+.panel-big .rank {
+    width: 20%;
+}
+
+.panel-big .data-body .list {
+    padding: 10px;
+    font-size: 1.5em;
 }

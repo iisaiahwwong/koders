@@ -6,7 +6,7 @@ var tweetSchema = new Schema({
     _id: { type: String, required: true, default: mongoose.Types.ObjectId() },
     tweet: { type: String, required: true },
     twitter_name: { type: String, required: true },
-    twitter_handle: { type: String, required: true, index: { unique: true } },
+    twitter_handle: { type: String, required: true },
     sentiment: { type: String, required: true },
     sentiment_value: { type: Number, default: false },
     create_timestamp: Date,

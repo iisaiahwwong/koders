@@ -7,25 +7,58 @@ $(function () {
 ----------------------------------------------------- */
 
 function initSocket(callback) {
+    let interval;
 
     let socket = io();
 
-    socket.emit('stream');
+    socket.emit('get');
 
-    socket.on('stream', function (data) {
+    socket.on('get', function (data) {
 
-        let object = JSON.parse(data);
+        let index = 0;
 
-        for (let i = 0; i < object.length; i++) {
+        let array = JSON.parse(data);
 
-            let tweet = new Tweet();
+        if (!(array.length < 0)) {
 
-            tweet.construct(object[i]);
+            interval = setInterval(function () {
 
-            callback(tweet);
+                if (index == array.length) {
 
+                    clearInterval(interval);
+
+                    socket.emit('stream');
+
+                    return;
+
+                }
+
+                populate(array[index]);
+
+                index++;
+
+            }, 0.001);
         }
     });
+
+    socket.on('stream', function (data) {
+        console.log('Stream');
+
+        populate(JSON.parse(data));
+
+    });
+
+    function populate(data) {
+
+        let tweet = new Tweet();
+
+        tweet.construct(data);
+
+        callback(tweet);
+
+        return;
+
+    }
 
 }
 
@@ -50,8 +83,9 @@ function init() {
     /** Camera */
     // Initialize THREEjs Camera
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 10000);
-    camera.position.z = 3000;
+    camera.position.z = 2000;
     camera.position.y = 0;
+
 
     /** Get ID of div */
     graphicContainer = document.getElementById('graphic-container');
@@ -86,9 +120,9 @@ function init() {
     mouse = new THREE.Vector2();
     raycaster = new THREE.Raycaster();
 
-    // document.addEventListener('mousemove', onDocumentMouseMove, false);
-    // document.addEventListener('touchstart', onDocumentTouchStart, false);
-    // document.addEventListener('mousedown', onDocumentMouseDown, false);
+    document.addEventListener('mousemove', onDocumentMouseMove, false);
+    document.addEventListener('touchstart', onDocumentTouchStart, false);
+    document.addEventListener('mousedown', onDocumentMouseDown, false);
 
     /** Listeners */
     btnSuiteOnClick();
@@ -120,8 +154,8 @@ function init() {
     animate();
 
     // Start sentiment visualisation
-    // initSentimentVisual();
-    initVisualMap();
+    initSentimentVisual();
+
 }
 
 /**
@@ -240,9 +274,9 @@ Tweet.prototype.construct = function (tweet) {
 ----------------------------------------------------- */
 
 function initSentimentVisual() {
-    
+
     particles = intialiseParticleBuffer(5000, 500, 50);
-//    seedData();
+    //    seedData();
     initSocket(pushData);
 
 }
@@ -356,6 +390,9 @@ var positive_index = [];
 var negative_index = [];
 var neutral_index = [];
 
+var topPositiveTweets = [], 
+    topNegativeTweets = [];
+
 var filter;
 
 function pushData(tweet) {
@@ -380,7 +417,7 @@ function pushData(tweet) {
         let colorHex = processSentiment(tweet, key);
 
         color.set(colorHex);
-        
+
         attributes.customColor.array[index] = color.r;
         attributes.customColor.array[index + 1] = color.g;
         attributes.customColor.array[index + 2] = color.b;
@@ -397,11 +434,11 @@ function pushData(tweet) {
         let cssLabel = addTweetLabel(new THREE.Vector3(x, y, z), tweet, 'tweet-3d', 0);
         tweet.cssLabel = cssLabel;
 
-        if(!filter && !fake) 
+        if (!filter && !fake)
             attributes.opacity.array[key] = 1;
-        else if(filter.toLowerCase() === tweet.sentiment.toLowerCase()) 
+        else if (filter.toLowerCase() === tweet.sentiment.toLowerCase())
             attributes.opacity.array[key] = 1;
-        
+
 
         attributes.opacity.needsUpdate = true;
 
@@ -446,16 +483,74 @@ function processSentiment(tweet, key) {
     switch (sentiment) {
         case 'NEGATIVE':
             negative_index.push(key);
+            getTopSentimentValues(topNegativeTweets, tweet, key);
             return 0xff0000;
         case 'NEUTRAL':
             neutral_index.push(key);
             return 0x56CCF2;
         case 'POSITIVE':
             positive_index.push(key);
+            getTopSentimentValues(topPositiveTweets, tweet, key);
+            console.log(topPositiveTweets);
             return 0x20e3b2;
         default:
             return 0x20e3b2;
     }
+
+}
+
+function getTopSentimentValues(array, tweet, key) {
+
+    if(array.length) {
+        for(let i = 0; i < array.length; i++) {
+            console.log(array[i].tweet_id === tweet.tweet_id);
+
+            if(array[i].tweet.tweet_id === tweet.tweet_id) {
+                return;
+            }
+        }
+    }
+
+    if (array.length !== 5) {
+
+            array.push({key: key, tweet: tweet});
+            return;
+
+    }
+
+    // Sorts by sentiment value
+    array.sort(function (a, b) {
+
+        if (b.tweet.sentiment_value == a.tweet.sentiment_value)
+            return new Date(a.tweet.create_timestamp) - new Date(b.tweet.create_timestamp);
+        else
+            return a.tweet.sentiment_value - b.tweet.sentiment_value;
+
+    });
+
+    if (tweet.sentiment_value > array[0].tweet.sentiment_value) {
+
+        if (tweet.sentiment_value == array[0].tweet.sentiment_value) {
+
+            if(new Date(tweet.create_timestamp) - new Date(array[0].tweet.create_timestamp) > 0) {
+
+                array[0].key = key;
+                array[0].tweet = tweet;
+                
+                return;
+            }
+
+            return;
+
+        }
+        
+        array[0].key = key;
+        array[0].tweet = tweet;
+
+        return;
+
+    }
+
 }
 
 function addLabel(bindObject, text, cssClass, offset) {
@@ -490,7 +585,7 @@ function addTweetLabel(bindObject, tweet, cssClass, offset) {
     let tweet_desc = document.createElement('p');
     tweet_desc.className = 'tweet-desc-3d';
 
-    twitter_handle.innerHTML = '@'+tweet.twitter_handle;
+    twitter_handle.innerHTML = '@' + tweet.twitter_handle;
     tweet_desc.innerHTML = tweet.tweet;
 
     label.appendChild(twitter_handle);
@@ -554,7 +649,7 @@ function cluster(type) {
             loopOpacity(positive_index.concat(neutral_index, negative_index), 1);
     }
 
-    if(!invisible) return;
+    if (!invisible) return;
 
     loopOpacity(visible, 1);
     loopOpacity(invisible, 0);
@@ -573,13 +668,13 @@ function fakeData() {
 
     loopOpacity(arr, 0);
 
-    for(let i = 0; i < 50; i++) {
+    for (let i = 0; i < 50; i++) {
         attributes.opacity.array[i] = 1;
         line.push(i);
     }
 
     connectNodes(line);
-    
+
 }
 
 function loopOpacity(arr, opacity) {
@@ -588,8 +683,8 @@ function loopOpacity(arr, opacity) {
     let attributes = geometry.attributes;
     let index;
 
-    for(let i = 0; i < arr.length; i++) {
-       
+    for (let i = 0; i < arr.length; i++) {
+
         index = arr[i];
 
         attributes.opacity.array[index] = opacity;
@@ -609,8 +704,8 @@ function connectNodes(cluster_index) {
     let attributes = geometry.attributes;
     let index, x, y, z;
 
-    for(let i = 0; i < cluster_index.length; i++ ) {
-        
+    for (let i = 0; i < cluster_index.length; i++) {
+
         index = cluster_index[i] * 3;
 
         x = attributes.position.array[index]
@@ -624,8 +719,8 @@ function connectNodes(cluster_index) {
     removeTHREEObject(line);
 
     line = VISUAL.connectNodesLines(arr, 0xe5e5e5, 0.3);
-	VISUAL.animateLine(line, line.points.length, 1);
-} 
+    VISUAL.animateLine(line, line.points.length, 1);
+}
 
 /* ---------------------------------------------------
 	INTERACTION LISTENER
@@ -633,7 +728,7 @@ function connectNodes(cluster_index) {
 
 function btnSuiteOnClick() {
 
-    $('.positive-btn').on('tap click',function () {
+    $('.positive-btn').on('tap click', function () {
         cluster('positive');
     });
 
@@ -645,14 +740,14 @@ function btnSuiteOnClick() {
         cluster('negative');
     });
 
-     $('.all-btn').click(function () {
+    $('.all-btn').click(function () {
         cluster('all');
     });
 
-    $('.search').keyup(function() {
+    $('.search').keyup(function () {
         let data = $(this).val();
         console.log(data);
-        if(data.toUpperCase() == '#WWEGBOF') {
+        if (data.toUpperCase() == '#WWEGBOF') {
             fakeData();
             fake = true;
         }
@@ -818,12 +913,12 @@ function getSentimentText(sentiment) {
 }
 
 function removeTHREEObject(obj) {
-    
-    if(!obj) return;
 
-    if(typeof obj.length !== 'undefined')
-        if(obj.length > 0) return;
-    
+    if (!obj) return;
+
+    if (typeof obj.length !== 'undefined')
+        if (obj.length > 0) return;
+
     sceneGL.remove(sceneGL.getObjectById(obj.id));
 
 }

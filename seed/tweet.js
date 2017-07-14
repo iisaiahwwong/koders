@@ -13,10 +13,15 @@ var newTweet = new Tweet({
     sentiment_value: 4,
 
 });
+let index = 0;
 
-newTweet.save(err => {
-    if (err) throw err;
-    mongoose.disconnect();
-});
+for(let i = 0; i < 10; i++) {
+    newTweet.save(err => {
+        index++;
+        if (err) throw err;
+        if(index == 10)
+            mongoose.disconnect();
+    });
+}
 
 

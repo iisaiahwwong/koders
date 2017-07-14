@@ -158,12 +158,12 @@ var VISUAL = (function () {
         return circle;
     }
 
-    Circle.prototype.drawThickCircle = function(circleOptions, multiplier, segment) {
-        
+    Circle.prototype.drawThickCircle = function (circleOptions, multiplier, segment) {
+
         let circles = [];
-        
-        for(let i = 0; i < multiplier; i++) {
-            
+
+        for (let i = 0; i < multiplier; i++) {
+
             var circle = this.drawBorderCircle(circleOptions);
 
             circles.push(circle);
@@ -277,14 +277,14 @@ var VISUAL = (function () {
 	 * @param {Number} pointsLen 
 	 * @param {Number} speed 
 	 */
-    let animateLine = function (threeObj, pointsLen, speed) {
-        
+    let animateLine = function (threeObj, pointsLen, speed, scene) {
+
         if (!threeObj) throw new Error('Three Object is not defined');
         if (!pointsLen) throw new Error('Point length is not defined');
         if (!speed) throw new Error('Speed is not defined');
 
         threeObj.geometry.setDrawRange(0, 0); // Starts the buffered geometry add point 0
-        sceneGL.add(threeObj);
+        (scene) ? scene.add(threeObj) : sceneGL.add(threeObj);
 
         var drawCount = 0;
         var animation = setInterval(function () {
@@ -296,11 +296,11 @@ var VISUAL = (function () {
 
     }
 
-    let animateThickLine = function (circles, speed) {
+    let animateThickLine = function (circles, speed, scene) {
 
-        circles.forEach(function(circle) {
-        
-            this.animateLine(circle, circle.points.length, speed);
+        circles.forEach(function (circle) {
+
+            this.animateLine(circle, circle.points.length, speed, scene);
 
         }, this);
 
@@ -330,6 +330,10 @@ var VISUAL = (function () {
         }
     }
 
+    function toRadians(angle) {
+        return angle * Math.PI / 180;
+    }
+
     return {
 
         CubicBezier: CubicBezier,
@@ -341,4 +345,6 @@ var VISUAL = (function () {
     }
 
 }());
+
+
 
