@@ -1,5 +1,7 @@
 var express = require('express');
 var router = express.Router();
+var request = require('request');
+
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -7,7 +9,7 @@ router.get('/', function(req, res, next) {
 });
 
 router.get('/sentiment', function(req, res, next) {
-  res.render('sentiment', { title: 'Koders', visual: ()=> { return 'sentiment' } });
+  res.render('sentiment', { title: 'Koders', visual: ()=> { return 'sentiment' }, sidebar: true });
 });
 
 router.get('/map', function(req, res, next) {
@@ -18,4 +20,8 @@ router.get('/worldmap', function(req, res, next) {
   res.render('worldMap', { title: 'World Map' } );
 });
 
+
 module.exports = router;
+
+
+

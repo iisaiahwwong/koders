@@ -6,6 +6,8 @@ $(function () {
     SOCKET
 ----------------------------------------------------- */
 
+let tracker = {};
+
 function initSocket(callback) {
     let interval;
 
@@ -42,9 +44,13 @@ function initSocket(callback) {
     });
 
     socket.on('stream', function (data) {
-        console.log('Stream');
+        let id =JSON.parse(data)._id;
+        console.log(data);
+        if(!(id in tracker)) {
+            tracker[id] = ' ';
+            populate(JSON.parse(data));
+        }
 
-        populate(JSON.parse(data));
 
     });
 
@@ -625,9 +631,21 @@ function searchHashTag(search) {
         return true;
     }
 
-
-
     return false;
+
+}
+
+function searchPython(search, event) {
+    if (event.keyCode == 13) {
+        console.log('ENTER');
+        $.ajax({
+            type: 'get',
+            url: 'http://192.168.8.104:8081?tweet_request=' + search,
+            success: function (res) {
+                console.log(res);
+            }
+        })
+    }
 
 }
 
@@ -806,6 +824,7 @@ function connectNodes(cluster_index) {
 /* ---------------------------------------------------
 	INTERACTION LISTENER
 ----------------------------------------------------- */
+let isFound;
 
 function btnSuiteOnClick() {
 
@@ -825,23 +844,73 @@ function btnSuiteOnClick() {
         cluster('all');
     });
 
-    $('.search').keyup(function () {
+    $('.black-btn').click(function () {
+        $.ajax({
+            type: 'get',
+            url: '/tweet/delete/all',
+            success: function (res) {
+                if (res.success) clearAll();
+            }
+        });
+    });
+
+    $('.search').keyup(function (event) {
         let search = $(this).val();
 
         if (search.length < 3) return;
 
         if (searchHashTag(search)) {
             fake = true;
+            isFound = false;
         }
         else {
             cluster('all');
             fake = false;
         }
+
+        if (!isFound) {
+            searchPython(search, event);
+        }
     });
 
-    $('.data-body').on('click', '.list', function(){
+    function clearAll() {
+
+        particles.userData = {};
+
+        let geometry = particles.geometry;
+        let attributes = geometry.attributes;
+        tweet_count = 0;
+        $('#tweet-counter').text(tweet_count);
+
+        positive_index = [];
+        negative_index = [];
+        negative_index = [];
+        topPositiveTweets = [],
+        topNegativeTweets = [];
+        topHashTags = [];
+
+        let $bar_positive = $('.bar-positive');
+        let $bar_negative = $('.bar-negative');
+        let $bar_neutral = $('.bar-neutral');
+
+        $bar_positive.css('width','0%');
+        $bar_neutral.css('width', '0%');
+        $bar_negative.css('width', '0%');
+
+
+        for (let i = 0; i < attributes.opacity.array.length; i++) {
+            attributes.opacity.array[i] = 0;
+            attributes.opacity.needsUpdate = true;
+        }
+
+    }
+
+    $('.data-body').on('click', '.list', function () {
         let hashtag = $('.data-hashtag', this).text();
-        console.log(hashtag);
+        $(".list").removeClass("active");
+
+        $(this).addClass("active");
+
         cluster('all');
         searchHashTag(hashtag);
     });
@@ -991,12 +1060,12 @@ function genHashtag() {
 
     let $databody = $('.data-body');
 
-    if($databody.children().length === 5) $databody.empty();
+    if ($databody.children().length === 5) $databody.empty();
 
-    for(let i = 0; i < filtered.length; i++) {
-        let list = $('<div>', {class: 'list'});
-        let rank = $('<span>', {class: 'rank'});
-        let hashtag = $('<span>', {class: 'data-hashtag'});
+    for (let i = 0; i < filtered.length; i++) {
+        let list = $('<div>', { class: 'list' });
+        let rank = $('<span>', { class: 'rank' });
+        let hashtag = $('<span>', { class: 'data-hashtag' });
 
         let obj = filtered[i];
 

@@ -8,25 +8,60 @@ $(function () {
 
 
 function initSocket(callback) {
+    let interval;
 
     let socket = io();
 
-    socket.emit('stream');
+    socket.emit('location get');
 
-    socket.on('stream', function (data) {
+    socket.emit('location stream');
 
-        let object = JSON.parse(data);
+    socket.on('location get', function (data) {
 
-        for (let i = 0; i < object.length; i++) {
+        let index = 0;
 
-            let tweet = new Tweet();
+        let array = JSON.parse(data);
 
-            tweet.construct(object[i]);
+        if (!(array.length < 0)) {
 
-            callback(tweet);
+            interval = setInterval(function () {
 
+                if (index == array.length) {
+
+                    clearInterval(interval);
+
+                    socket.emit('location stream');
+
+                    return;
+                }
+
+                populate(array[index]);
+
+                index++;
+
+            }, 0.01);
+        }
+        else {
+            socket.emit('location stream');
         }
     });
+
+    socket.on('location stream', function (data) {
+        populate(JSON.parse(data));
+
+    });
+
+    function populate(data) {
+
+        let location = new Location();
+
+        location.construct(data);
+
+        callback(location);
+
+        return;
+
+    }
 
 }
 
@@ -41,7 +76,7 @@ var mouse, raycaster;
 
 var graphicContainer;
 
-const
+const   
     WHITE_THEME = 0xE6EAEB,
     BLACK_THEME = 0x0B141B;
 
@@ -204,73 +239,23 @@ function getRandomInt(min, max) {
     MODELS
 ----------------------------------------------------- */
 
-let emotions = [
-    'POSITIVE', 'NEGATIVE', 'NEUTRAL'
-]
-
-let handle = [
-    'iisaiahwwong', 'alex00i', 'Jasondoe'
-]
-
-function Tweet() {
+function Location() {
 
     this._id;
-    this.create_timestamp;
-    this.twitter_name;
-    this.twitter_handle;
-    this.tweet;
-    this.sentiment;
-    this.sentiment_value;
-    this.hashtag;
-    this.cssLabel
-    this.cssTwitterHandle;
+    this.id;
+    this.location;
 
 }
 
-Tweet.prototype.construct = function (tweet) {
+Location.prototype.construct = function (location) {
 
-    for (let key in tweet) {
+    for (let key in location) {
 
-        this[key] = tweet[key];
+        this[key] = location[key];
 
     }
 
 }
-
-/* ---------------------------------------------------
-    SENTIMENT
------------------------------------------------------ */
-
-function initSentimentVisual() {
-    
-    particles = intialiseParticleBuffer(5000, 500, 50);
-//    seedData();
-    initSocket(pushData);
-
-}
-
-function seedData() {
-
-    let index = 0;
-
-    let interval = setInterval(function () {
-        index++;
-
-        if (index == 200) clearInterval(interval);
-
-        let tweet = new Tweet();
-        tweet.tweet = index + ' Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.'
-        tweet.twitter_handle = handle[getRandomInt(0, 2)];
-        tweet.sentiment = emotions[getRandomInt(0, 2)];
-        tweet.sentiment_value = getRandomInt(1, 10);
-
-        pushData(tweet);
-
-
-    }, 50);
-}
-
-var particles;
 
 function intialiseParticleBuffer(size, spacing, particleSize) {
 
@@ -327,14 +312,14 @@ function intialiseParticleBuffer(size, spacing, particleSize) {
         transparent: true,
     });
 
-    let particles = new THREE.Points(geometry, material);
-    particles.userData = userData;
+    let locationParticles = new THREE.Points(geometry, material);
+    locationParticles.userData = userData;
 
-    sceneGL.add(particles);
+    sceneGL.add(locationParticles);
 
-    particles.updateMatrixWorld();
+    locationParticles.updateMatrixWorld();
 
-    return particles;
+    return locationParticles;
 
 }
 
@@ -351,169 +336,12 @@ function changeOpacity(material, opacity) {
 }
 
 /* ---------------------------------------------------
-    DATA STREAM
------------------------------------------------------ */
-
-var positive_index = [];
-var negative_index = [];
-var neutral_index = [];
-
-var filter;
-
-function pushData(tweet) {
-
-    if (!(tweet instanceof Tweet)) return;
-
-    let userData = particles.userData;
-
-    let color = new THREE.Color();
-
-    for (let key in userData) {
-
-        if (userData[key] instanceof Tweet) continue;
-
-        userData[key] = tweet;
-
-        let geometry = particles.geometry;
-        let attributes = geometry.attributes;
-
-        let index = key * 3;
-
-        let colorHex = processSentiment(tweet, key);
-
-        color.set(colorHex);
-        
-        attributes.customColor.array[index] = color.r;
-        attributes.customColor.array[index + 1] = color.g;
-        attributes.customColor.array[index + 2] = color.b;
-        attributes.customColor.needsUpdate = true;
-
-        let x = attributes.position.array[index];
-        let y = attributes.position.array[index + 1];
-        let z = attributes.position.array[index + 2];
-
-        let twitterHandleLabel = addLabel(new THREE.Vector3(x, y, z), tweet.twitter_handle, 'twitter-handle-3d', -45);
-        tweet.cssTwitterHandle = twitterHandleLabel;
-        //        sceneCss.add(twitterHandleLabel);
-
-        let cssLabel = addTweetLabel(new THREE.Vector3(x, y, z), tweet, 'tweet-3d', 0);
-        tweet.cssLabel = cssLabel;
-
-        if(!filter && !fake) 
-            attributes.opacity.array[key] = 1;
-        else if(filter.toLowerCase() === tweet.sentiment.toLowerCase()) 
-            attributes.opacity.array[key] = 1;
-        
-
-        attributes.opacity.needsUpdate = true;
-
-        // Increment the counter
-        increment();
-
-        // Updates the ratio emotion of tweets 
-        ratio();
-        break;
-
-    }
-}
-
-function ratio() {
-
-    let $bar_positive = $('.bar-positive');
-    let $bar_negative = $('.bar-negative');
-    let $bar_neutral = $('.bar-neutral');
-
-    let negative_length = negative_index.length;
-    let positive_length = positive_index.length;
-    let neutral_length = neutral_index.length;
-
-    let total = negative_length + positive_length + neutral_length;
-
-    $bar_positive.css('width', (positive_length / total * 100) + '%');
-    $bar_neutral.css('width', (neutral_length / total * 100) + '%');
-    $bar_negative.css('width', (negative_length / total * 100) + '%');
-
-    $bar_positive.text(positive_length);
-    $bar_neutral.text(neutral_length);
-    $bar_negative.text(negative_length);
-
-}
-
-function processSentiment(tweet, key) {
-
-    if (!(tweet instanceof Tweet)) return;
-
-    sentiment = tweet.sentiment.toUpperCase();
-
-    switch (sentiment) {
-        case 'NEGATIVE':
-            negative_index.push(key);
-            return 0xff0000;
-        case 'NEUTRAL':
-            neutral_index.push(key);
-            return 0x56CCF2;
-        case 'POSITIVE':
-            positive_index.push(key);
-            return 0x20e3b2;
-        default:
-            return 0x20e3b2;
-    }
-}
-
-function addLabel(bindObject, text, cssClass, offset) {
-
-    let startObject = (bindObject instanceof THREE.Object3D) ? bindObject.position : bindObject;
-
-    var label = document.createElement('div');
-    label.className = cssClass;
-    label.innerHTML = text.sentiment;
-
-    var object = new THREE.CSS3DObject(label);
-    object.position.x = startObject.x + offset;
-    object.position.y = startObject.y;
-    object.position.z = startObject.z;
-
-    return object;
-
-}
-
-function addTweetLabel(bindObject, tweet, cssClass, offset) {
-
-    if (!(tweet instanceof Tweet)) console.warn('Not an instance of Tweet');
-
-    let startObject = (bindObject instanceof THREE.Object3D) ? bindObject.position : bindObject;
-
-    let label = document.createElement('div');
-    label.className = cssClass;
-
-    let twitter_handle = document.createElement('p');
-    twitter_handle.className = 'handle-3d';
-
-    let tweet_desc = document.createElement('p');
-    tweet_desc.className = 'tweet-desc-3d';
-
-    twitter_handle.innerHTML = '@'+tweet.twitter_handle;
-    tweet_desc.innerHTML = tweet.tweet;
-
-    label.appendChild(twitter_handle);
-    label.appendChild(tweet_desc);
-
-    let object = new THREE.CSS3DObject(label);
-    object.position.x = startObject.x + offset;
-    object.position.y = startObject.y;
-    object.position.z = startObject.z;
-
-    return object;
-
-}
-
-/* ---------------------------------------------------
 	LAYOUT
 ----------------------------------------------------- */
 
 function spaceOut(space) {
 
-    let geometry = particles.geometry;
+    let geometry = locationParticles.geometry;
     let attributes = geometry.attributes;
     let index;
 
@@ -529,64 +357,10 @@ function spaceOut(space) {
     }
 }
 
-function cluster(type) {
-
-    let invisible;
-    let visible;
-
-    filter = type;
-
-    switch (type) {
-        case 'positive':
-            invisible = negative_index.concat(neutral_index);
-            visible = positive_index;
-            break;
-        case 'negative':
-            invisible = positive_index.concat(neutral_index);
-            visible = negative_index;
-            break;
-        case 'neutral':
-            invisible = negative_index.concat(positive_index);
-            visible = neutral_index;
-            break;
-        default:
-            invisible = null;
-            filter = null;
-            removeTHREEObject(line);
-            loopOpacity(positive_index.concat(neutral_index, negative_index), 1);
-    }
-
-    if(!invisible) return;
-
-    loopOpacity(visible, 1);
-    loopOpacity(invisible, 0);
-    connectNodes(visible);
-}
-
-let fake;
-
-function fakeData() {
-
-    let geometry = particles.geometry;
-    let attributes = geometry.attributes;
-
-    let arr = positive_index.concat(neutral_index, negative_index);
-    let line = [];
-
-    loopOpacity(arr, 0);
-
-    for(let i = 0; i < 50; i++) {
-        attributes.opacity.array[i] = 1;
-        line.push(i);
-    }
-
-    connectNodes(line);
-    
-}
 
 function loopOpacity(arr, opacity) {
 
-    let geometry = particles.geometry;
+    let geometry = locationParticles.particles.geometry;
     let attributes = geometry.attributes;
     let index;
 
@@ -649,19 +423,6 @@ function btnSuiteOnClick() {
 
      $('.all-btn').click(function () {
         cluster('all');
-    });
-
-    $('.search').keyup(function() {
-        let data = $(this).val();
-        console.log(data);
-        if(data.toUpperCase() == '#WWEGBOF') {
-            fakeData();
-            fake = true;
-        }
-        else {
-            cluster('all');
-            fake = false;
-        }
     });
 
 }
@@ -751,129 +512,60 @@ function setUpRaycaster(event) {
 /* ---------------------------------------------------
 	INTERPOLATION 
 ----------------------------------------------------- */
-let tweet_count = 0;
-
-function increment() {
-    ++tweet_count;
-    $('#tweet-counter').text(tweet_count);
-
-    // if(tweet_count % 50 === 0 && tweet_count < 500) spaceOut(1.4);
-}
-
-function genTweet(tweet) {
-    if (!(tweet instanceof Tweet)) {
-        $('.info-overview .user-msg').show();
-        return;
-    }
-
-    // Remove message box
-    if ($('.info-overview .user-msg').length > 0) $('.info-overview .user-msg').hide();
-
-    let $tweet = $('.tweet');
-    let $sentiment = $('.sentiment');
-    let $value = $('.sentiment-value');
-    let $emotion = $('.emotion');
-
-    let emotionBar = getSentimentGradient(tweet.sentiment);
-    let emotionText = getSentimentText(tweet.sentiment);
-
-    $emotion.css('width', (tweet.sentiment_value * 10) + '%');
-
-    $tweet.text(tweet.tweet);
-    $sentiment.text(tweet.sentiment);
-    $emotion.text(tweet.sentiment_value + '0%');
-    $emotion.attr('class', 'emotion  progress-bar ' + emotionBar);
-    $sentiment.attr('class', 'sentiment ' + emotionText);
-    // $value.attr('class', 'sentiment-value ' + emotionText);
-}
-
-function getSentimentGradient(sentiment) {
-
-    sentiment = sentiment.toUpperCase();
-
-    switch (sentiment) {
-        case 'NEGATIVE':
-            return 'negative';
-        case 'NEUTRAL':
-            return 'neutral';
-        case 'POSITIVE':
-            return 'positive';
-        default:
-            return 'positive';
-    }
-
-}
-
-function getSentimentText(sentiment) {
-    sentiment = sentiment.toUpperCase();
-
-    switch (sentiment) {
-        case 'NEGATIVE':
-            return 'negative-text';
-        case 'NEUTRAL':
-            return 'neutral-text';
-        case 'POSITIVE':
-            return 'positive-text';
-        default:
-            return 'positive-text';
-    }
-}
-
-function removeTHREEObject(obj) {
-    
-    if(!obj) return;
-
-    if(typeof obj.length !== 'undefined')
-        if(obj.length > 0) return;
-    
-    sceneGL.remove(sceneGL.getObjectById(obj.id));
-
-}
-
-function removeCSSObject(label) {
-
-    if (!label) return;
-
-    if (typeof label.length !== 'undefined')
-        if (label.length > 0) return;
-
-    sceneCss.remove(sceneCss.getObjectById(label.id));
-
-}
 
 /* ---------------------------------------------------
 	MAP  
 ----------------------------------------------------- */
 
 
-
-
-
-let peopleParticles;
+let locationParticles;
 let obj;
 let circles;
-
-function People() {
-
-}
 
 function initVisualMap() {
 
     drawBorder();
 
-    peopleParticles = intialiseParticleBuffer(5000, 500, 50);
-    
-    reorderParticles();
+    locationParticles = intialiseParticleBuffer(10000, 500, 50);
 
-    seedPeopleData(2000);
+    initSocket(pushParticles);
+
+    initChart();
+    
+    // reorderParticles();
+
+    // seedPeopleData(100);
 
     density();
 
 }
 
+function initChart() {
+    let bar = drawRectangle(50, 25, 100, 0xffffff, -2000, 0, 10);
+    let bar1 = drawRectangle(50, 25, 100, 0xffffff, -2000, 0, 10);
+    let bar2 = drawRectangle(50, 25, 100, 0xffffff, -2000, 0, 10);
+
+    // sceneGL.add(bar);
+}
+
+function drawRectangle(width, height, depth, color, pX, pY, pZ) {
+
+	var boxGeometry = new THREE.BoxGeometry(width, height, depth);
+	var material = new THREE.MeshBasicMaterial({color: color});
+	
+	var bar = new THREE.Mesh(boxGeometry, material);
+	
+	bar.position.x = pX;
+	bar.position.y = pY;
+	bar.position.z = pZ;
+	
+    return bar;
+    
+}
+
 function expand() {
     let index, radius, angle;   
-    let geometry = peopleParticles.geometry;
+    let geometry = locationParticles.geometry;
     let attributes = geometry.attributes;
 
     for(let i = 0; i < 200; i++) {
@@ -887,7 +579,7 @@ function expand() {
 function reorderParticles() {
 
     let index, radius, angle;   
-    let geometry = peopleParticles.geometry;
+    let geometry = locationParticles.geometry;
     let attributes = geometry.attributes;
 
     for(let i = 0; i < 5000; i++) {
@@ -897,11 +589,15 @@ function reorderParticles() {
         radius = getRandomInt(0, 1000);
         angle = getRandomInt(0, 360);
         
-        attributes.position.array[index] = 100 + (radius * Math.cos(toRadians(angle)));
-        attributes.position.array[index + 1] = -100 + (radius * Math.sin(toRadians(angle)));
+        attributes.position.array[index] = 100 + (radius * Math.cos(toRadians(angle))); // X
+        attributes.position.array[index + 1] = -100 + (radius * Math.sin(toRadians(angle))); // y
         attributes.position.array[index + 2] = 50;
 
+        attributes.opacity.array[index] = 1;
+
+        attributes.opacity.needsUpdate = true;
         attributes.position.needsUpdate = true;
+        
 
     }
 
@@ -914,7 +610,7 @@ function drawBorder() {
         color: 0x05FFD2,
         resolution: 361,
         startAngle: 0,
-        radius: 1000,
+        radius: 1200,
     }, 10, 0.5);
 
     
@@ -932,29 +628,33 @@ function seedPeopleData(total) {
 
         if (index == total) clearInterval(interval);
 
-        let people = new People();
+        let location = new Location();
 
-        pushParticles(people);
+        pushParticles(location);
 
     }, 1);
 
 }
 
-function pushParticles(people) {
+/* ---------------------------------------------------
+    DATA STREAM
+----------------------------------------------------- */
 
-    if (!(people instanceof People)) return;
+function pushParticles(location) {
 
-    let userData = peopleParticles.userData;
+    if (!(location instanceof Location)) return;
+
+    let userData = locationParticles.userData;
 
     let color = new THREE.Color();
 
     for (let key in userData) {
 
-        if (userData[key] instanceof People) continue;
+        if (userData[key] instanceof Location) continue;
 
-        userData[key] = people;
+        userData[key] = location;
 
-        let geometry = peopleParticles.geometry;
+        let geometry = locationParticles.geometry;
         let attributes = geometry.attributes;
 
         let index = key * 3;
@@ -966,9 +666,30 @@ function pushParticles(people) {
         attributes.customColor.array[index + 2] = color.b;
         attributes.customColor.needsUpdate = true;
 
-        let x = attributes.position.array[index];
-        let y = attributes.position.array[index + 1];
-        let z = attributes.position.array[index + 2];            
+        try {
+
+            console.log('CoordX: ' + location.location.coordinates[0] + ' CoordY: ' + location.location.coordinates[1]);
+
+            let coodX = location.location.coordinates[0];
+            let coodY = location.location.coordinates[1];
+
+            let radius = Math.sqrt(Math.pow(coodX, 2) + Math.pow(coodY, 2));
+
+            console.log(radius);
+
+            // let angle = toDegrees(Math.atan(coodY/coodX));
+
+            // let inverseAngle = (angle + 180) % 360;
+
+            attributes.position.array[index] = coodX + 100;
+            attributes.position.array[index + 1] = coodY - 200;
+            attributes.position.array[index + 2] = 50;     
+            attributes.position.needsUpdate = true;
+
+        }
+        catch(err) {
+            console.log(location);
+        }
         
         attributes.opacity.array[key] = 1;
 
@@ -985,14 +706,14 @@ function density() {
 
         let distance = getDistance(camera, new THREE.Vector3(0, 0,0));
 
-        let geometry = peopleParticles.geometry;
+        let geometry = locationParticles.geometry;
         let attributes = geometry.attributes;
 
         let index;
 
         for(let i = 0; i < 2000; i++) {
             
-            attributes.size.array[i] = 0.045 * distance;
+            attributes.size.array[i] = 0.1 * distance;
 
             attributes.size.needsUpdate = true;
         }
@@ -1003,7 +724,7 @@ function density() {
 
             if(s < 1)
                 break;
-            if(s > 1.2) s = 1.2;
+            if(s > 1.2) s = 1.1;
 
             circles[i].scale.set(s,s,s);
 
@@ -1019,4 +740,8 @@ function getDistance(mesh1, mesh2) {
   var dz = mesh1.position.z - mesh2.z; 
 
   return Math.sqrt(dx*dx+dy*dy+dz*dz); 
+}
+
+function toDegrees (angle) {
+  return angle * (180 / Math.PI);
 }

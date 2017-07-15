@@ -1,5 +1,7 @@
 let io = require('socket.io')();
 let Tweet = require('../models/tweet');
+let Location = require('../models/location');
+let InOut = require('../models/inout');
 
 let clients = [];
 
@@ -17,6 +19,75 @@ io.on('connection', function (socket) {
         console.log('Client stopped receiving, SOCKETID: ' + socket.id);
     });
 
+    socket.on('location get', function () {
+
+        clients[socket.id] = true;
+
+        console.log('Location connected')
+
+        Location.find(function (err, data) {
+            socket.emit('location get', JSON.stringify(data));
+        });
+
+    });
+
+    socket.on('inout stream', function() {
+        console.log('inout stream connectied')
+        let interval = setInterval(function() {
+
+            if (clients[socket.id] === false) {
+                clearInterval(interval);
+                return;
+            }
+
+            InOut.find(function(err, inout) {
+                if(!inout) return;
+
+                socket.emit('inout stream', JSON.stringify(inout[0]));
+            });
+        },10);
+    });
+
+
+    let controlLocation = null;
+
+    socket.on('location stream', function () {
+        console.log('Location streaming')
+
+        clients[socket.id] = true;
+
+        let interval = setInterval(function () {
+
+            if (clients[socket.id] === false) {
+                clearInterval(interval);
+                return;
+            }
+
+            Location.findOne().sort({_id:-1}).exec(function (err, location) {
+
+                if (!location) return;
+
+                try {
+                    // console.log(controlLocation.location.timestamp)
+                    // console.log(location.location.timestamp);
+                }
+                catch(err){}
+                
+                // console.log(!controlLocation || new Date(controlLocation.location.timestamp).getTime() < new Date(location.location.timestamp).getTime());
+
+                if(!controlLocation || new Date(controlLocation.location.timestamp).getTime() < new Date(location.location.timestamp).getTime() ) {
+
+                    socket.emit('location stream', JSON.stringify(location));
+                    controlLocation = location;
+
+                }
+    
+            });
+
+
+        }, 10);
+    });
+
     socket.on('get', function () {
         clients[socket.id] = true;
 
@@ -28,13 +99,10 @@ io.on('connection', function (socket) {
 
     });
 
-    socket.on('top positive', function() {
-
-    });
 
     socket.on('stream', function (message) {
         clients[socket.id] = true;
-        console.log("Stream started for client");
+        console.log("Tweet stream");
 
         let controlTweet;
 
@@ -45,18 +113,12 @@ io.on('connection', function (socket) {
                 return;
             }
 
-            Tweet.findOne().sort('-created_at').exec(function(err, tweet) { 
-
-                if(!tweet)  return;
-
-                if(!controlTweet) controlTweet = tweet;
-
-                if(controlTweet._id !== tweet._id) {
-                    socket.emit('stream', JSON.stringify(tweet));
-                }
+            Tweet.findOne().sort({_id:-1}).exec(function (err, tweet) {
+                
+                if (!tweet) return;
+                socket.emit('stream', JSON.stringify(tweet));
 
             });
-
 
         }, 10);
 

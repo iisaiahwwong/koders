@@ -19,38 +19,41 @@ let SENTIMENT = (function () {
 
         socket.emit('get');
 
-        socket.on('get', function(data) {
-            
+        socket.on('get', function (data) {
+
             let index = 0;
 
             let array = JSON.parse(data);
 
-            if(!(array.length < 0)) {
+            if (!(array.length < 0)) {
 
-                interval = setInterval(function() {
+                interval = setInterval(function () {
 
-                    if(index == array.length) {
-                        
+                    if (index == array.length) {
+
                         clearInterval(interval);
-                        
+
                         socket.emit('stream');
-                        
+
                         return;
 
                     }
 
                     populate(array[index]);
 
-                    index++;    
-                
+                    index++;
+
                 }, 0.001);
             }
         });
 
         socket.on('stream', function (data) {
-            console.log('Stream');
-
-            populate(JSON.parse(data));
+            let id = JSON.parse(data)._id;
+            console.log(data);
+            if (!(id in tracker)) {
+                tracker[id] = ' ';
+                populate(JSON.parse(data));
+            }
 
         });
 
@@ -92,7 +95,7 @@ let SENTIMENT = (function () {
 
         /** Camera */
         // Initialize THREEjs Camera
-        camera = new THREE.PerspectiveCamera(45, (window.innerWidth / 2)/ 450, 0.1, 10000);
+        camera = new THREE.PerspectiveCamera(45, (window.innerWidth / 2) / 450, 0.1, 10000);
         camera.position.z = 2000;
         camera.position.y = 0;
 
@@ -385,12 +388,17 @@ let SENTIMENT = (function () {
     }
 
     /* ---------------------------------------------------
-        DATA STREAM
+    DATA STREAM
     ----------------------------------------------------- */
 
     var positive_index = [];
     var negative_index = [];
     var neutral_index = [];
+
+    var topPositiveTweets = [],
+        topNegativeTweets = [];
+
+    var topHashTags = [];
 
     var filter;
 
@@ -414,6 +422,8 @@ let SENTIMENT = (function () {
             let index = key * 3;
 
             let colorHex = processSentiment(tweet, key);
+            processHashtags(tweet, key);
+
 
             color.set(colorHex);
 
@@ -434,6 +444,8 @@ let SENTIMENT = (function () {
             tweet.cssLabel = cssLabel;
 
             if (!filter && !fake)
+                attributes.opacity.array[key] = 1;
+            if (!filter)
                 attributes.opacity.array[key] = 1;
             else if (filter.toLowerCase() === tweet.sentiment.toLowerCase())
                 attributes.opacity.array[key] = 1;
@@ -481,18 +493,164 @@ let SENTIMENT = (function () {
 
         switch (sentiment) {
             case 'NEGATIVE':
-                negative_index.push(key);
+                negative_index.push({ key: key, tweet: tweet });
+                getTopSentimentValues(topNegativeTweets, tweet, key);
                 return 0xff0000;
             case 'NEUTRAL':
-                neutral_index.push(key);
+                neutral_index.push({ key: key, tweet: tweet });
                 return 0x56CCF2;
             case 'POSITIVE':
-                positive_index.push(key);
+                positive_index.push({ key: key, tweet: tweet });
+                getTopSentimentValues(topPositiveTweets, tweet, key);
+
                 return 0x20e3b2;
             default:
                 return 0x20e3b2;
         }
+
     }
+
+    function processHashtags(tweet) {
+
+        let hashtag = tweet.hashtag;
+
+        if (!topHashTags.length)
+            topHashTags.push({
+                hashtag: hashtag,
+                counter: 1
+            });
+
+        for (let i = 0; i < topHashTags.length; i++) {
+
+            let current = topHashTags[i].hashtag.toLowerCase();
+
+            if (current === hashtag.toLowerCase()) {
+                topHashTags[i].counter += 1;
+                break;
+            }
+
+            if (i === topHashTags.length - 1)
+                topHashTags.push({
+                    hashtag: hashtag,
+                    counter: 1
+                });
+
+        }
+
+    }
+
+    function sortHashtags() {
+
+        topHashTags.sort(function (a, b) {
+            if (b.counter < a.counter)
+                return -1;
+            if (b.counter > a.counter)
+                return 1;
+            return 0;
+        });
+        // populate table
+        genHashtag();
+    }
+
+    function getTopSentimentValues(array, tweet, key) {
+
+        if (array.length) {
+            for (let i = 0; i < array.length; i++) {
+                if (array[i].tweet.tweet_id === tweet.tweet_id) {
+                    return;
+                }
+            }
+        }
+
+        if (array.length !== 5) {
+
+            array.push({ key: key, tweet: tweet });
+            return;
+
+        }
+
+        // Sorts by sentiment value
+        array.sort(function (a, b) {
+
+            if (b.tweet.sentiment_value == a.tweet.sentiment_value)
+                return new Date(a.tweet.create_timestamp) - new Date(b.tweet.create_timestamp);
+            else
+                return a.tweet.sentiment_value - b.tweet.sentiment_value;
+
+        });
+
+        if (tweet.sentiment_value > array[0].tweet.sentiment_value) {
+
+            if (tweet.sentiment_value == array[0].tweet.sentiment_value) {
+
+                if (new Date(tweet.create_timestamp) - new Date(array[0].tweet.create_timestamp) > 0) {
+
+                    array[0].key = key;
+                    array[0].tweet = tweet;
+
+                    return;
+                }
+
+                return;
+
+            }
+
+            array[0].key = key;
+            array[0].tweet = tweet;
+
+            return;
+
+        }
+
+    }
+
+
+    function searchHashTag(search) {
+
+        let allTweets = positive_index.concat(neutral_index, negative_index);
+
+        let tweet;
+
+        let filtered = [];
+
+        for (let i = 0; i < allTweets.length; i++) {
+
+            tweet = allTweets[i].tweet.tweet;
+
+            if (new RegExp(search + " ").test(tweet))
+                filtered.push(allTweets[i]);
+
+        }
+
+        if (filtered.length > 1) {
+            // animate searchterm
+            loopOpacity(allTweets, 0);
+            loopOpacity(filtered, 1);
+            connectNodes(filtered);
+
+            return true;
+        }
+
+
+
+        return false;
+
+    }
+
+    function searchPython(search, event) {
+        if (event.keyCode == 13) {
+            console.log('ENTER');
+            $.ajax({
+                type: 'get',
+                url: 'http://192.168.8.104:8081?tweet_request=' + search,
+                success: function (res) {
+                    console.log(res);
+                }
+            })
+        }
+
+    }
+
 
     function addLabel(bindObject, text, cssClass, offset) {
 
@@ -574,10 +732,14 @@ let SENTIMENT = (function () {
             case 'positive':
                 invisible = negative_index.concat(neutral_index);
                 visible = positive_index;
+                genTopTweets(topPositiveTweets);
+                indicateTitle('positive');
                 break;
             case 'negative':
                 invisible = positive_index.concat(neutral_index);
                 visible = negative_index;
+                genTopTweets(topNegativeTweets);
+                indicateTitle('negative');
                 break;
             case 'neutral':
                 invisible = negative_index.concat(positive_index);
@@ -593,6 +755,8 @@ let SENTIMENT = (function () {
         if (!invisible) return;
 
         loopOpacity(visible, 1);
+
+        // hide non filtered objects
         loopOpacity(invisible, 0);
         connectNodes(visible);
     }
@@ -626,7 +790,7 @@ let SENTIMENT = (function () {
 
         for (let i = 0; i < arr.length; i++) {
 
-            index = arr[i];
+            index = arr[i].key;
 
             attributes.opacity.array[index] = opacity;
             attributes.opacity.needsUpdate = true;
@@ -647,7 +811,7 @@ let SENTIMENT = (function () {
 
         for (let i = 0; i < cluster_index.length; i++) {
 
-            index = cluster_index[i] * 3;
+            index = cluster_index[i].key * 3;
 
             x = attributes.position.array[index]
             y = attributes.position.array[index + 1];
@@ -660,13 +824,14 @@ let SENTIMENT = (function () {
         removeTHREEObject(line);
 
         line = VISUAL.connectNodesLines(arr, 0xe5e5e5, 0.3);
-
         VISUAL.animateLine(line, line.points.length, 1, sceneGL);
     }
 
     /* ---------------------------------------------------
         INTERACTION LISTENER
     ----------------------------------------------------- */
+
+    var isFound;
 
     function btnSuiteOnClick() {
 
@@ -686,17 +851,34 @@ let SENTIMENT = (function () {
             cluster('all');
         });
 
-        $('.search').keyup(function () {
-            let data = $(this).val();
-            console.log(data);
-            if (data.toUpperCase() == '#WWEGBOF') {
-                fakeData();
+        $('.search').keyup(function (event) {
+            let search = $(this).val();
+
+            console.log(search);
+
+            if (search.length < 3) return;
+
+            if (searchHashTag(search)) {
                 fake = true;
+                isFound = false;
             }
             else {
                 cluster('all');
                 fake = false;
             }
+
+            if (!isFound) {
+                searchPython(search, event);
+            }
+        });
+        $('.data-body').on('click', '.list', function () {
+            let hashtag = $('.data-hashtag', this).text();
+            $(".list").removeClass("active");
+
+            $(this).addClass("active");
+
+            cluster('all');
+            searchHashTag(hashtag);
         });
 
     }
@@ -774,8 +956,8 @@ let SENTIMENT = (function () {
     function setUpRaycaster(event) {
         event.preventDefault();
 
-        mouse.x = (event.clientX / (window.innerWidth / 2) - 100) * 2 - 1;
-        mouse.y = - (event.clientY / HEIGHT) * 2 + 1;
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
 
         // console.log('X | ' + mouse.x);
         // console.log('Y | ' + mouse.y);
@@ -787,6 +969,7 @@ let SENTIMENT = (function () {
         INTERPOLATION 
     ----------------------------------------------------- */
     let tweet_count = 0;
+
 
     function increment() {
         ++tweet_count;
@@ -835,6 +1018,62 @@ let SENTIMENT = (function () {
                 return 'positive';
             default:
                 return 'positive';
+        }
+
+    }
+
+    function genHashtag() {
+        let filtered = topHashTags.slice(0, 5);
+
+        let $databody = $('.data-body');
+
+        if ($databody.children().length === 5) $databody.empty();
+
+        for (let i = 0; i < filtered.length; i++) {
+            let list = $('<div>', { class: 'list' });
+            let rank = $('<span>', { class: 'rank' });
+            let hashtag = $('<span>', { class: 'data-hashtag' });
+
+            let obj = filtered[i];
+
+            rank.text(obj.counter);
+            hashtag.text(obj.hashtag);
+
+            list.append(rank).append(hashtag);
+
+            $databody.append(list);
+        }
+
+    }
+
+    function indicateTitle(str) {
+        $('.box-title').attr('class', 'panel box-title ' + str);
+        $('.box-title').text(str);
+    }
+
+    function genTopTweets(arr) {
+
+        let $databody = $('.data-body');
+
+        $databody.empty();
+
+        arr.reverse();
+
+        for (let i = 0; i < arr.length; i++) {
+
+            let obj = arr[i];
+
+            let list = $('<div>', { class: 'list' });
+            let rank = $('<span>', { class: 'rank' });
+            let tweet = $('<span>', { class: 'tweet' });
+
+            rank.text(obj.tweet.sentiment_value);
+            tweet.text(obj.tweet.tweet);
+
+            list.append(rank).append(tweet);
+
+            $databody.append(list);
+
         }
 
     }
@@ -889,6 +1128,70 @@ let SENTIMENT = (function () {
 
 let VISUAL_MAP = (function () {
 
+    function initSocket(callback) {
+        let interval;
+
+        let socket = io();
+
+        socket.emit('location get');
+
+        socket.emit('location stream');
+
+        socket.emit('inout stream');
+
+        socket.on('location get', function (data) {
+
+            let index = 0;
+
+            let array = JSON.parse(data);
+
+            if (!(array.length < 0)) {
+
+                interval = setInterval(function () {
+
+                    if (index == array.length) {
+
+                        clearInterval(interval);
+
+                        socket.emit('location stream');
+
+                        return;
+                    }
+
+                    populate(array[index]);
+
+                    index++;
+
+                }, 0.01);
+            }
+            else {
+                socket.emit('location stream');
+            }
+        });
+
+        socket.on('location stream', function (data) {
+            populate(JSON.parse(data));
+
+        });
+
+        socket.on('inout stream', function (data) {
+            inOutUpdate(JSON.parse(data));
+        });
+
+        function populate(data) {
+
+            let location = new Location();
+
+            location.construct(data);
+
+            callback(location);
+
+            return;
+
+        }
+
+    }
+
     /**
  * THREE JS SETUP
  * Using CSS Renderer and WebGL Renderer
@@ -912,7 +1215,7 @@ let VISUAL_MAP = (function () {
         /** Camera */
         // Initialize THREEjs Camera
         camera = new THREE.PerspectiveCamera(45, (window.innerWidth / 2) / 450, 0.1, 10000);
-        camera.position.z = 3000;
+        camera.position.z = 3150;
         camera.position.y = 0;
 
         /** Get ID of div */
@@ -948,7 +1251,7 @@ let VISUAL_MAP = (function () {
         mouse = new THREE.Vector2();
         raycaster = new THREE.Raycaster();
 
-          /** Camera Controls */
+        /** Camera Controls */
         // controls = new THREE.TrackballControls(camera);
         // controls.rotateSpeed = 1.5;
         // controls.maxDistance = 6000;
@@ -997,7 +1300,7 @@ let VISUAL_MAP = (function () {
         camera.aspect = (window.innerWidth / 2) / 450;
         camera.updateProjectionMatrix();
 
-        rendererGL.setSize((window.innerWidth / 2)- 100, HEIGHT);
+        rendererGL.setSize((window.innerWidth / 2) - 100, HEIGHT);
         rendererCss.setSize((window.innerWidth / 2) - 100, HEIGHT);
 
         render();
@@ -1051,6 +1354,28 @@ let VISUAL_MAP = (function () {
      * 
      * DRAW THREE SPACES
      */
+    /* ---------------------------------------------------
+    MODELS
+    ----------------------------------------------------- */
+
+    function Location() {
+
+        this._id;
+        this.id;
+        this.location;
+
+    }
+
+    Location.prototype.construct = function (location) {
+
+        for (let key in location) {
+
+            this[key] = location[key];
+
+        }
+
+    }
+
 
 
     var particles;
@@ -1133,11 +1458,7 @@ let VISUAL_MAP = (function () {
 
     }
 
-    /* ---------------------------------------------------
-        DATA STREAM
-    ----------------------------------------------------- */
 
-    
     /* ---------------------------------------------------
         LAYOUT
     ----------------------------------------------------- */
@@ -1174,6 +1495,16 @@ let VISUAL_MAP = (function () {
     /* ---------------------------------------------------
         INTERACTION LISTENER
     ----------------------------------------------------- */
+
+    function inOutUpdate(inout) {
+        let inCounter = inout.in;
+        let outCounter = inout.out;
+        let people = Math.abs(inout.in);
+        console.log(inCounter)
+        $('#in').text(inCounter);
+        $('#out').text(outCounter);
+        $('#inout-counter').text(people);
+    }
 
     function btnSuiteOnClick() {
 
@@ -1290,124 +1621,23 @@ let VISUAL_MAP = (function () {
         raycaster.setFromCamera(mouse, camera);
     }
 
-    /* ---------------------------------------------------
-        INTERPOLATION 
-    ----------------------------------------------------- */
-    let tweet_count = 0;
-
-    function increment() {
-        ++tweet_count;
-        $('#tweet-counter').text(tweet_count);
-
-        // if(tweet_count % 50 === 0 && tweet_count < 500) spaceOut(1.4);
-    }
-
-    function genTweet(tweet) {
-        if (!(tweet instanceof Tweet)) {
-            $('.info-overview .user-msg').show();
-            return;
-        }
-
-        // Remove message box
-        if ($('.info-overview .user-msg').length > 0) $('.info-overview .user-msg').hide();
-
-        let $tweet = $('.tweet');
-        let $sentiment = $('.sentiment');
-        let $value = $('.sentiment-value');
-        let $emotion = $('.emotion');
-
-        let emotionBar = getSentimentGradient(tweet.sentiment);
-        let emotionText = getSentimentText(tweet.sentiment);
-
-        $emotion.css('width', (tweet.sentiment_value * 10) + '%');
-
-        $tweet.text(tweet.tweet);
-        $sentiment.text(tweet.sentiment);
-        $emotion.text(tweet.sentiment_value + '0%');
-        $emotion.attr('class', 'emotion  progress-bar ' + emotionBar);
-        $sentiment.attr('class', 'sentiment ' + emotionText);
-        // $value.attr('class', 'sentiment-value ' + emotionText);
-    }
-
-    function getSentimentGradient(sentiment) {
-
-        sentiment = sentiment.toUpperCase();
-
-        switch (sentiment) {
-            case 'NEGATIVE':
-                return 'negative';
-            case 'NEUTRAL':
-                return 'neutral';
-            case 'POSITIVE':
-                return 'positive';
-            default:
-                return 'positive';
-        }
-
-    }
-
-    function getSentimentText(sentiment) {
-        sentiment = sentiment.toUpperCase();
-
-        switch (sentiment) {
-            case 'NEGATIVE':
-                return 'negative-text';
-            case 'NEUTRAL':
-                return 'neutral-text';
-            case 'POSITIVE':
-                return 'positive-text';
-            default:
-                return 'positive-text';
-        }
-    }
-
-    function removeTHREEObject(obj) {
-
-        if (!obj) return;
-
-        if (typeof obj.length !== 'undefined')
-            if (obj.length > 0) return;
-
-        sceneGL.remove(sceneGL.getObjectById(obj.id));
-
-    }
-
-    function removeCSSObject(label) {
-
-        if (!label) return;
-
-        if (typeof label.length !== 'undefined')
-            if (label.length > 0) return;
-
-        sceneCss.remove(sceneCss.getObjectById(label.id));
-
-    }
-
-    /* ---------------------------------------------------
-        MAP  
-    ----------------------------------------------------- */
 
 
-
-
-
-    let peopleParticles;
+    let locationParticles;
     let obj;
     let circles;
-
-    function People() {
-
-    }
 
     function initVisualMap() {
 
         drawBorder();
 
-        peopleParticles = intialiseParticleBuffer(5000, 500, 50);
+        locationParticles = intialiseParticleBuffer(10000, 500, 50);
 
-        reorderParticles();
+        initSocket(pushParticles);
 
-        seedPeopleData(2000);
+        // reorderParticles();
+
+        // seedPeopleData(100);
 
         density();
 
@@ -1415,7 +1645,7 @@ let VISUAL_MAP = (function () {
 
     function expand() {
         let index, radius, angle;
-        let geometry = peopleParticles.geometry;
+        let geometry = locationParticles.geometry;
         let attributes = geometry.attributes;
 
         for (let i = 0; i < 200; i++) {
@@ -1429,7 +1659,7 @@ let VISUAL_MAP = (function () {
     function reorderParticles() {
 
         let index, radius, angle;
-        let geometry = peopleParticles.geometry;
+        let geometry = locationParticles.geometry;
         let attributes = geometry.attributes;
 
         for (let i = 0; i < 5000; i++) {
@@ -1439,11 +1669,15 @@ let VISUAL_MAP = (function () {
             radius = getRandomInt(0, 1000);
             angle = getRandomInt(0, 360);
 
-            attributes.position.array[index] = 100 + (radius * Math.cos(toRadians(angle)));
-            attributes.position.array[index + 1] = -100 + (radius * Math.sin(toRadians(angle)));
+            attributes.position.array[index] = 100 + (radius * Math.cos(toRadians(angle))); // X
+            attributes.position.array[index + 1] = -100 + (radius * Math.sin(toRadians(angle))); // y
             attributes.position.array[index + 2] = 50;
 
+            attributes.opacity.array[index] = 1;
+
+            attributes.opacity.needsUpdate = true;
             attributes.position.needsUpdate = true;
+
 
         }
 
@@ -1456,9 +1690,8 @@ let VISUAL_MAP = (function () {
             color: 0x05FFD2,
             resolution: 361,
             startAngle: 0,
-            radius: 1000,
+            radius: 1200,
         }, 10, 0.5);
-
 
 
         VISUAL.animateThickLine(circles, 2, sceneGL);
@@ -1474,29 +1707,33 @@ let VISUAL_MAP = (function () {
 
             if (index == total) clearInterval(interval);
 
-            let people = new People();
+            let location = new Location();
 
-            pushParticles(people);
+            pushParticles(location);
 
         }, 1);
 
     }
 
-    function pushParticles(people) {
+    /* ---------------------------------------------------
+        DATA STREAM
+    ----------------------------------------------------- */
 
-        if (!(people instanceof People)) return;
+    function pushParticles(location) {
 
-        let userData = peopleParticles.userData;
+        if (!(location instanceof Location)) return;
+
+        let userData = locationParticles.userData;
 
         let color = new THREE.Color();
 
         for (let key in userData) {
 
-            if (userData[key] instanceof People) continue;
+            if (userData[key] instanceof Location) continue;
 
-            userData[key] = people;
+            userData[key] = location;
 
-            let geometry = peopleParticles.geometry;
+            let geometry = locationParticles.geometry;
             let attributes = geometry.attributes;
 
             let index = key * 3;
@@ -1508,9 +1745,28 @@ let VISUAL_MAP = (function () {
             attributes.customColor.array[index + 2] = color.b;
             attributes.customColor.needsUpdate = true;
 
-            let x = attributes.position.array[index];
-            let y = attributes.position.array[index + 1];
-            let z = attributes.position.array[index + 2];
+            try {
+
+                // console.log('CoordX: ' + location.location.coordinates[0] + ' CoordY: ' + location.location.coordinates[1]);
+
+                let coodX = location.location.coordinates[0];
+                let coodY = location.location.coordinates[1];
+
+                // let radius = Math.sqrt(Math.pow(coodX, 2) + Math.pow(coodY, 2)) - 100;
+
+                // let angle = toDegrees(Math.atan(coodY/coodX));
+
+                // let inverseAngle = (angle + 180) % 360;
+
+                attributes.position.array[index] = coodX + 100;
+                attributes.position.array[index + 1] = coodY - 200;
+                attributes.position.array[index + 2] = 50;
+                attributes.position.needsUpdate = true;
+
+            }
+            catch (err) {
+                console.log(location);
+            }
 
             attributes.opacity.array[key] = 1;
 
@@ -1527,14 +1783,14 @@ let VISUAL_MAP = (function () {
 
             let distance = getDistance(camera, new THREE.Vector3(0, 0, 0));
 
-            let geometry = peopleParticles.geometry;
+            let geometry = locationParticles.geometry;
             let attributes = geometry.attributes;
 
             let index;
 
             for (let i = 0; i < 2000; i++) {
 
-                attributes.size.array[i] = 0.045 * distance;
+                attributes.size.array[i] = 0.1 * distance;
 
                 attributes.size.needsUpdate = true;
             }
@@ -1545,7 +1801,7 @@ let VISUAL_MAP = (function () {
 
                 if (s < 1)
                     break;
-                if (s > 1.2) s = 1.2;
+                if (s > 1.2) s = 1.1;
 
                 circles[i].scale.set(s, s, s);
 
@@ -1556,7 +1812,6 @@ let VISUAL_MAP = (function () {
     }
 
     function getDistance(mesh1, mesh2) {
-        
         var dx = mesh1.position.x - mesh2.x;
         var dy = mesh1.position.y - mesh2.y;
         var dz = mesh1.position.z - mesh2.z;
@@ -1564,6 +1819,9 @@ let VISUAL_MAP = (function () {
         return Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
 
+    function toDegrees(angle) {
+        return angle * (180 / Math.PI);
+    }
 
     return {
         init: init

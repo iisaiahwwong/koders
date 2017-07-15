@@ -1,11 +1,17 @@
 <div class="row">
 	<div class="col-xs-6">
 		<div class="panel panel-big">
+			<div class="panel box-title-left">
+									<a href="/sentiment">View more</a>
+			</div>
 			<div id="sentiment-container"></div>
 		</div>
 	</div>
 	<div class="col-xs-6">
 		<div class="panel panel-big">
+				<div class="panel box-title">
+					<a href="/map">View more</a>
+				</div>
 			<div id="visualmap-container"></div>
 		</div>
 	</div>
@@ -82,8 +88,8 @@
 			<div class="row">
 				<div class="col-xs-12">
 					<div class="total-tweet-wrap">
-						<span class="total-tweets" id="tweet-counter">10</span>
-						<span class="sub-title">PEOPLE</span>
+						<span class="total-tweets" id="inout-counter">0</span>
+						<span class="sub-title">TOTAL PEOPLE</span>
 					</div>
 				</div>
 				<div class="col-xs-6">
@@ -99,13 +105,13 @@
 			<div class="row">
 				<div class="col-xs-6">
 					<div class="total-tweet-wrap">
-						<span class="total-tweets" id="">0</span>
+						<span class="total-tweets" id="in">0</span>
 						<span class="sub-title">IN</span>
 					</div>
 				</div>
 				<div class="col-xs-6">
 					<div class="total-tweet-wrap">
-						<span class="total-tweets" id="">0</span>
+						<span class="total-tweets" id="out">0</span>
 						<span class="sub-title">OUT</span>
 					</div>
 				</div>
@@ -119,17 +125,17 @@
 	<div class="col-md-6 col-xs-12">
 		<div class="panel panel-big">
 			<div class="data-wrapper">
-
+				<div class="panel box-title"></div>
 				<div class="heading">
-					<span class="rank">Rank</span>
+					<span class="rank">VALUE</span>
 					<span class="tweet">TWEET</span>
 				</div>
 
 				<div class="data-body">
-					<div class="list">	
+					{{!-- <div class="list">	
 						<span class="rank">Hello</span>
 						<span class="tweet">hsaldhals</span>
-					</div>
+					</div> --}}
 				</div>
 
 			</div>

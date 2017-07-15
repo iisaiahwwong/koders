@@ -22,6 +22,7 @@ var validator = require('express-validator');
 // Routes
 var index = require('./routes/index');
 var users = require('./routes/users');
+var tweetRoute = require('./routes/tweet');
 var cognitiveRoute = require('./routes/cognitive');
 
 var app = express();
@@ -53,6 +54,7 @@ app.use(flash());
 
 // ROUTES
 app.use('/cognitive', cognitiveRoute);
+app.use('/tweet', tweetRoute);
 app.use('/users', users);
 app.use('/', index);
 

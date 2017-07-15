@@ -475,6 +475,11 @@ a.article, a.article:hover {
     width: 100%;
     color: black;
 }
+.black-btn {
+    width: 100%;
+    background: black;
+    color: white;
+}
 
 .progress {
 
@@ -548,6 +553,11 @@ a.article, a.article:hover {
 }
 
 .top-hashtags .data-body .list:hover {
+    background: #0DD8F9;
+    color: black;
+}
+
+.top-hashtags .data-body .list:active {
     background: #0DD8F9;
     color: black;
 }
@@ -639,9 +649,32 @@ a.article, a.article:hover {
 }
 .panel-big .data-wrapper {
     overflow-y: auto;
+    margin-top: 20px;
+}
+.panel-big .box-title {
+    width: 280px;
+    height: 80px;
+    position: absolute;
+    padding-top: 25px;
+    right: 40px;
+    top: -40px;
+    font-size: 1.5em;
+    text-align: center;
+    text-transform: uppercase;
+}
+.panel-big .box-title-left {
+    width: 280px;
+    height: 80px;
+    position: absolute;
+    padding-top: 25px;
+    left: 40px;
+    top: -40px;
+    font-size: 1.5em;
+    text-align: center;
+    text-transform: uppercase;
 }
 .panel-big .heading {
-    box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.8);    padding: 10px;
+    padding-right: 10px;
 }
 .panel-big span {
       display: inline-block;
@@ -657,6 +690,17 @@ a.article, a.article:hover {
 }
 
 .panel-big .data-body .list {
-    padding: 10px;
-    font-size: 1.5em;
+    padding: 10px 20px 15px 10px;
+    font-size: 1.2em;
+    margin-top: 15px;
+}
+
+.panel-big .data-body span {
+   display: inline-block;
+}
+
+
+.panel-big .data-body .tweet {
+    white-space: nowrap; 
+    width: 80%;
 }
