@@ -47,6 +47,8 @@ let SENTIMENT = (function () {
             }
         });
 
+        let tracker ={};
+
         socket.on('stream', function (data) {
             let id = JSON.parse(data)._id;
             console.log(data);
@@ -1145,6 +1147,7 @@ let VISUAL_MAP = (function () {
 
             let array = JSON.parse(data);
 
+            try {
             if (!(array.length < 0)) {
 
                 interval = setInterval(function () {
@@ -1167,6 +1170,8 @@ let VISUAL_MAP = (function () {
             else {
                 socket.emit('location stream');
             }
+            }
+            catch(err) {console.warn('Error')}
         });
 
         socket.on('location stream', function (data) {

@@ -640,6 +640,8 @@ function seedPeopleData(total) {
     DATA STREAM
 ----------------------------------------------------- */
 
+let locations = [];
+
 function pushParticles(location) {
 
     if (!(location instanceof Location)) return;
@@ -657,6 +659,9 @@ function pushParticles(location) {
         let geometry = locationParticles.geometry;
         let attributes = geometry.attributes;
 
+        processLocation(location, key);
+        checkColor();
+
         let index = key * 3;
 
         color.set(0x17BCDE);
@@ -668,14 +673,14 @@ function pushParticles(location) {
 
         try {
 
-            console.log('CoordX: ' + location.location.coordinates[0] + ' CoordY: ' + location.location.coordinates[1]);
+            // console.log('CoordX: ' + location.location.coordinates[0] + ' CoordY: ' + location.location.coordinates[1]);
 
             let coodX = location.location.coordinates[0];
             let coodY = location.location.coordinates[1];
 
             let radius = Math.sqrt(Math.pow(coodX, 2) + Math.pow(coodY, 2));
 
-            console.log(radius);
+            // console.log(radius);
 
             // let angle = toDegrees(Math.atan(coodY/coodX));
 
@@ -698,6 +703,45 @@ function pushParticles(location) {
         break;
 
     }
+}
+
+function processLocation(location, key) {
+
+    // let timestamp = location.location.timestamp;
+
+    //  if (!locations.length)
+    //     locations.push({
+    //         timestamp: location.location.timestamp,
+    //         counter: 1,
+    //         key: [key]
+    //     });
+
+    // for (let i = 0; i < locations.length; i++) {
+
+    //     let current = locations[i].timestamp;
+
+    //     if (current === timestamp) {
+    //         locations[i].counter += 1;
+    //         locations[i].key.push(key);
+    //         break;
+    //     }
+
+    //     if (i === locations.length - 1)
+    //         locations.push({
+    //             timestamp: location.location.timestamp,
+    //             counter: 1,
+    //             key: [key]
+    //         });
+
+    // }
+}
+
+function checkColor() {
+
+    // for(let i = 0; i < locations.length; i++) {
+        
+    //     console.log(locations[i].counter);
+    // }
 }
 
 function density() {

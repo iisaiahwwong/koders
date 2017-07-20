@@ -45,9 +45,9 @@ function initSocket(callback) {
 
     socket.on('stream', function (data) {
         let id =JSON.parse(data)._id;
-        console.log(data);
         if(!(id in tracker)) {
             tracker[id] = ' ';
+                    console.log(data);
             populate(JSON.parse(data));
         }
 
@@ -161,6 +161,7 @@ function init() {
 
     // Start sentiment visualisation
     initSentimentVisual();
+
 
 }
 
@@ -425,6 +426,7 @@ function pushData(tweet) {
         let colorHex = processSentiment(tweet, key);
         processHashtags(tweet, key);
 
+
         color.set(colorHex);
 
         attributes.customColor.array[index] = color.r;
@@ -536,7 +538,6 @@ function processHashtags(tweet) {
             });
 
     }
-
 }
 
 function sortHashtags() {
@@ -617,13 +618,15 @@ function searchHashTag(search) {
 
         tweet = allTweets[i].tweet.tweet;
 
-        if (new RegExp(search + " ").test(tweet))
+        if (new RegExp(search).test(tweet))
             filtered.push(allTweets[i]);
-
     }
+
+    console.log(filtered)
 
     if (filtered.length > 1) {
         // animate searchterm
+        console.log('here');
         loopOpacity(allTweets, 0);
         loopOpacity(filtered, 1);
         connectNodes(filtered);
@@ -1056,6 +1059,7 @@ function getSentimentGradient(sentiment) {
 }
 
 function genHashtag() {
+
     let filtered = topHashTags.slice(0, 5);
 
     let $databody = $('.data-body');

@@ -662,6 +662,17 @@ a.article, a.article:hover {
     text-align: center;
     text-transform: uppercase;
 }
+.panel-big .box-title-right {
+    width: 280px;
+    height: 80px;
+    position: absolute;
+    padding-top: 25px;
+    right: 40px;
+    top: -40px;
+    font-size: 1.5em;
+    text-align: center;
+    text-transform: uppercase;
+}
 .panel-big .box-title-left {
     width: 280px;
     height: 80px;

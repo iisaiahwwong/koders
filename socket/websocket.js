@@ -92,6 +92,7 @@ io.on('connection', function (socket) {
         clients[socket.id] = true;
 
         Tweet.find(function (err, data) {
+            if(!data) return;
 
             if (data.length > 0) socket.emit('get', JSON.stringify(data));
 
